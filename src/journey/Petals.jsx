@@ -129,32 +129,47 @@ const Petals = forwardRef(function Petals(
       tileCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
       tileCtx.clearRect(0, 0, TILE, TILE);
 
-      for (let n = 0; n < 260; n += 1) {
-        const px = Math.random() * TILE;
-        const py = Math.random() * TILE;
-        const rx = 4.6 + Math.random() * 3.4;
-        const ry = rx * (0.6 + Math.random() * 0.2);
-        const angle = Math.random() * TAU;
-        const shade = Math.random();
-        tileCtx.fillStyle = `rgb(${196 + shade * 42}, ${96 + shade * 52}, ${134 + shade * 40})`;
-        tileCtx.globalAlpha = 0.72 + shade * 0.28;
+      /*
+       * Packed, not scattered. A drift is petals all the way down, so the tile
+       * is laid in two passes at well over full coverage: a darker bed first,
+       * then a brighter layer over it. Overlap is the point — it is what stops
+       * gaps opening under the surface — and since the tile is built once, the
+       * density costs nothing per frame.
+       */
+      const pass = (count, minR, maxR, lo, hi) => {
+        for (let n = 0; n < count; n += 1) {
+          const px = Math.random() * TILE;
+          const py = Math.random() * TILE;
+          const rx = minR + Math.random() * (maxR - minR);
+          const ry = rx * (0.58 + Math.random() * 0.24);
+          const angle = Math.random() * TAU;
+          const t = Math.random();
+          const r = lo[0] + (hi[0] - lo[0]) * t;
+          const g = lo[1] + (hi[1] - lo[1]) * t;
+          const b = lo[2] + (hi[2] - lo[2]) * t;
+          tileCtx.fillStyle = `rgb(${r | 0}, ${g | 0}, ${b | 0})`;
+          tileCtx.globalAlpha = 0.85 + t * 0.15;
 
-        /* Draw wrapped copies so the tile has no seam. */
-        for (let ox = -1; ox <= 1; ox += 1) {
-          for (let oy = -1; oy <= 1; oy += 1) {
-            const x = px + ox * TILE;
-            const y = py + oy * TILE;
-            if (x < -12 || x > TILE + 12 || y < -12 || y > TILE + 12) continue;
-            tileCtx.save();
-            tileCtx.translate(x, y);
-            tileCtx.rotate(angle);
-            tileCtx.beginPath();
-            tileCtx.ellipse(0, 0, rx, ry, 0, 0, TAU);
-            tileCtx.fill();
-            tileCtx.restore();
+          /* Wrapped copies, so the tile repeats without a seam. */
+          for (let ox = -1; ox <= 1; ox += 1) {
+            for (let oy = -1; oy <= 1; oy += 1) {
+              const x = px + ox * TILE;
+              const y = py + oy * TILE;
+              if (x < -14 || x > TILE + 14 || y < -14 || y > TILE + 14) continue;
+              tileCtx.save();
+              tileCtx.translate(x, y);
+              tileCtx.rotate(angle);
+              tileCtx.beginPath();
+              tileCtx.ellipse(0, 0, rx, ry, 0, 0, TAU);
+              tileCtx.fill();
+              tileCtx.restore();
+            }
           }
         }
-      }
+      };
+
+      pass(1500, 5.4, 8.6, [150, 66, 100], [188, 92, 128]);
+      pass(1100, 4.2, 7.0, [198, 100, 136], [238, 150, 178]);
 
       pattern = ctx.createPattern(tile, 'repeat');
       /* The tile is at device resolution; bring it back to CSS pixels. */
@@ -336,7 +351,7 @@ const Petals = forwardRef(function Petals(
         p.swirl = rand(0.45, 1.05) * (fromLeft ? 1 : -1);
         /* Each petal keeps to its own band of the vortex, so they spread over
            every radius instead of all being flung to the rim. */
-        p.orbit = rand(0.12, 0.92);
+        p.orbit = rand(0.08, 0.95);
         /* Long-lived: they are meant to circle the act, not cross it once. */
         p.maxLife = rand(1400, 2600);
         return;
@@ -482,12 +497,30 @@ const Petals = forwardRef(function Petals(
           const dx = fx - p.x;
           const dy = fy - p.y;
           const dist = Math.hypot(dx, dy) || 1;
+          /* Unit vector pointing at the middle of the frame. */
+          const ux = dx / dist;
+          const uy = dy / dist;
+
+          /* Tangential: what actually carries them round. */
+          p.vx += -uy * p.swirl * 0.05;
+          p.vy += ux * p.swirl * 0.05;
+
+          /*
+           * Radial: a *damped* spring onto this petal's own orbit. An
+           * undamped one lets them overshoot outward, and because the
+           * restoring force is weak out there they never come back — they
+           * simply drift off the sides and die, which is why the middle of the
+           * frame emptied out. Damping the radial velocity keeps each petal in
+           * its band, and the bands are spread from near the centre to the rim
+           * so the whole frame stays populated.
+           */
           const reach = Math.min(w, h) * 0.62;
-          /* Toward this petal's own orbit: inside it they drift out, outside
-             it they drift in, so the frame fills at every radius. */
-          const pull = (Math.min(1.4, dist / reach) - (p.orbit || 0.5)) * 0.3;
-          p.vx += ((-dy / dist) * p.swirl + (dx / dist) * pull) * 0.05;
-          p.vy += ((dx / dist) * p.swirl + (dy / dist) * pull) * 0.05;
+          const radialErr = dist - p.orbit * reach;
+          const outward = -(p.vx * ux + p.vy * uy);
+          const accel = radialErr * 0.0022 - outward * 0.08;
+          p.vx += ux * accel;
+          p.vy += uy * accel;
+
           /* Barely any weight in the swirl: they circle the frame rather than
              raining through it. */
           p.vy += GRAVITY * 0.12;
@@ -584,6 +617,7 @@ const Petals = forwardRef(function Petals(
     };
 
     if (MAX) raf = requestAnimationFrame(frame);
+
 
     return () => {
       cancelAnimationFrame(raf);

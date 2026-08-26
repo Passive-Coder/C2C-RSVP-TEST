@@ -375,15 +375,16 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
       });
 
       /*
-       * K — the ladder is already strung on the boughs when they are hauled
-       * back, so it is carried up with them and flung when they let go. It is
-       * a chain, not a set of independent boards: the release travels down it,
-       * each rung starting a little after the one above and overshooting a
-       * little more, the way slack runs down a rope ladder. Nothing fades in
-       * and nothing falls out of the sky — every rung is on its cord the whole
-       * time.
+       * K — the ladder is strung on the boughs before they are hauled back, so
+       * it is carried up with them and flung when they let go.
+       *
+       * It is NOT a rigid board: rotating a whole column as one slab reads as a
+       * rotating rectangle, not as a ladder. A rope ladder is stiff rungs on
+       * slack cord, so the motion travels *down* it — each rung starts after
+       * the one above, swings about its own cords, and carries more slack the
+       * further down it hangs, so it swings wider and takes longer to settle.
        */
-      const LAG = 0.34; // how long the release takes to reach the next rung
+      const LAG = 0.42; // how long the release takes to reach the next rung
 
       /* Wrapped, not passed by reference: attachRopes is declared further
          down, so naming it here would read it before initialisation. */
@@ -392,37 +393,46 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
         .call(retie, null, SWING_AT + 7)
         .call(retie, null, SWING_AT + 12);
 
-      tl.set(q('.faq-shell'), { autoAlpha: 1 }, SWING_AT - 0.2)
-        .fromTo(
-          ropes,
-          { scaleY: 0 },
-          { scaleY: 1, duration: 2.2, stagger: 0.12, ease: 'power2.out' },
-          SWING_AT,
+      tl.set(q('.faq-shell'), { autoAlpha: 1 }, SWING_AT - 0.2);
+      gsap.set(planks, { autoAlpha: 1 });
+
+      /* The cords go with the rungs, so the assembly stays one piece. */
+      q('.faq-column').forEach((column, index) => {
+        const dir = index === 0 ? -1 : 1;
+        tl.fromTo(
+          column.querySelectorAll('.rope'),
+          { x: 16 * dir },
+          { x: 0, duration: 8, ease: 'elastic.out(1, 0.4)' },
+          SWING_AT + 0.2,
         );
+      });
 
       planks.forEach((plank) => {
         const column = plank.parentElement;
         /* Rope spans are children too, so count planks only. */
-        const row = Array.from(column.querySelectorAll('.plank')).indexOf(plank);
-        const at = SWING_AT + row * LAG;
-        /* Further down the ladder means more slack to take up, so more throw
-           and a looser settle. */
-        const throwUp = 62 + row * 26;
-        const tilt = (row % 2 ? 1 : -1) * (7 + row * 1.6);
+        const rows = Array.from(column.querySelectorAll('.plank'));
+        const row = rows.indexOf(plank);
+        const dir = plank.closest('.faq-column') === q('.faq-column')[0] ? -1 : 1;
 
-        tl.set(plank, { autoAlpha: 1 }, SWING_AT - 0.2)
-          .fromTo(
-            plank,
-            { y: -throwUp, rotation: tilt },
-            { y: 0, duration: 6.5 + row * 0.3, ease: `elastic.out(1, ${(0.36 + row * 0.03).toFixed(2)})` },
-            at,
-          )
-          .fromTo(
-            plank,
-            { rotation: tilt },
-            { rotation: 0, duration: 7 + row * 0.3, ease: 'elastic.out(1, 0.3)' },
-            at + 0.15,
-          );
+        const at = SWING_AT + 0.25 + row * LAG;
+        /* Enough slack to read as a whip, not so much that the lower rungs
+           swing through each other. */
+        const tilt = (5.5 + row * 1.5) * dir;
+        const sway = (12 + row * 4) * dir;
+        const lift = -(14 + row * 5);
+
+        tl.fromTo(
+          plank,
+          { rotation: tilt, x: sway, y: lift },
+          {
+            rotation: 0,
+            x: 0,
+            y: 0,
+            duration: 8 + row * 0.5,
+            ease: `elastic.out(1, ${(0.3 + row * 0.022).toFixed(3)})`,
+          },
+          at,
+        );
       });
 
       /* L — the boughs keep shedding; the fall carries on into the footer. */
@@ -496,7 +506,7 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
           /* Shed by the boughs, and still falling as the footer takes over. */
           api.setMode('drift');
           api.setWind(0.5);
-          api.setIntensity(0.5 * ramp(126, 133));
+          api.setIntensity(0.25 * ramp(126, 133));
         } else {
           api.setIntensity(0);
         }

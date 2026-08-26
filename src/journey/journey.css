@@ -634,11 +634,11 @@
    stacked, so the tallest one sets the height for all of them. */
 .days {
   position: absolute;
-  left: 9%;
+  left: 12%;
   top: 50%;
   z-index: 12;
   display: grid;
-  width: min(560px, 50%);
+  width: min(700px, 56%);
   transform: translateY(-50%);
 }
 
@@ -648,7 +648,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: clamp(20px, 3.2vw, 38px) clamp(20px, 3.6vw, 48px);
+  padding: clamp(24px, 3.8vw, 46px) clamp(24px, 4.2vw, 56px);
   background: var(--ink);
   border: 3.862px solid var(--rose);
   border-radius: 21.643px 0 21.643px 0;
@@ -717,6 +717,7 @@
 
 .faq-column {
   position: relative;
+  will-change: transform;
   display: flex;
   flex-direction: column;
   gap: clamp(12px, 3.4vh, 30px);
@@ -732,9 +733,22 @@
   top: calc(-1 * clamp(30px, 8vh, 70px));
   bottom: 18px;
   z-index: 0;
-  width: 2.5px;
-  background: linear-gradient(180deg, rgba(122, 63, 44, 0) 0%, #7a3f2c 12%, #8b4a34 100%);
+  width: 5px;
+  /* Twisted fibre: the diagonal banding is the lay of the rope, the inset
+     shadows round it off. */
+  background: repeating-linear-gradient(
+    -66deg,
+    #5c2f21 0,
+    #8a4c35 2px,
+    #6d3a28 4px,
+    #4a2519 6px
+  );
+  box-shadow:
+    inset -1.5px 0 0 rgba(0, 0, 0, 0.45),
+    inset 1px 0 0 rgba(255, 196, 152, 0.16);
+  border-radius: 3px;
 }
+
 
 /* The knot: a wrap of cord where the rope meets the wood. */
 .rope::before {

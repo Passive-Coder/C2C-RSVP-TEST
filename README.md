@@ -108,10 +108,13 @@ pinned, and the timeline lets go on an `elastic.out` so the stored energy plays
 out as an overshooting swing that rocks itself still.
 
 The ladder is strung on the boughs *before* they are hauled back, so it is
-carried up with them and flung when they let go. It behaves as a chain rather
-than a set of independent boards: the release travels down it, each rung
-starting `LAG` after the one above and overshooting a little more, the way slack
-runs down a rope ladder. Nothing fades in and nothing falls out of the sky.
+carried up with them and flung when they let go. Each rung is animated
+individually — rotating a whole column as one slab reads as a rotating
+rectangle, not as a ladder. A rope ladder is stiff rungs on slack cord, so the
+release travels *down* it: each rung starts `LAG` after the one above, swings
+about its own cords, and carries more slack the further down it hangs, so it
+swings wider and takes longer to settle. Nothing fades in and nothing falls out
+of the sky.
 
 The ladder ties onto the wood. `limbCurve.js` is generated from the plate by
 tracing, per column, the longest vertical run of dark opaque pixels — the main
@@ -130,6 +133,22 @@ different curves (blown across on `power2.out`, rising on `sine.out` over a
 longer span), with a continuous buoyant bob on its own wrapper and a cursor
 lean that eases rather than snaps. `Wind` draws the streaks that make the gust
 legible.
+
+## Verifying animation in an embedded preview
+
+The preview pane reports `document.visibilityState === 'hidden'`, so the browser
+correctly refuses to fire `requestAnimationFrame` and the petal field sits
+frozen with nothing to show for it. **Screenshots and canvas readbacks taken
+there say nothing about the particle system.** To check it, temporarily expose a
+frame stepper from the effect and pump it from the console:
+
+```js
+canvas.__step = (n = 1) => { for (let i = 0; i < n; i += 1) { cancelAnimationFrame(raf); frame(); } };
+```
+
+That drives the real code path, so the drift, the scoop and the refill can all
+be measured. GSAP is unaffected — `tl.progress()` renders synchronously, so the
+timeline can be inspected by seeking at any time.
 
 ## Things worth knowing before editing
 
