@@ -43,6 +43,24 @@ const REFILL_PER_FRAME = 7;
    drift starts behaving like a liquid. */
 const SLUMP = 0.14;
 
+/*
+ * The route petals take through the timeline act, in fractions of the frame:
+ * down the left edge, along the floor, and up the right. On a tall narrow
+ * screen there is no room for the descent, so it flattens into a single pass
+ * across the middle. Sampled into a polyline once per resize, with arc length
+ * carried along it so petals travel at an even speed rather than sprinting
+ * through the straights.
+ */
+const PATH_WIDE = [
+  [0.045, 0.02], [0.05, 0.3], [0.075, 0.62], [0.11, 0.8],
+  [0.2, 0.87], [0.34, 0.885], [0.46, 0.885], [0.56, 0.86],
+  [0.63, 0.72], [0.665, 0.45], [0.71, 0.24], [0.79, 0.16],
+  [0.88, 0.14], [0.97, 0.14],
+];
+const PATH_NARROW = [
+  [-0.02, 0.6], [0.2, 0.585], [0.5, 0.58], [0.8, 0.585], [1.02, 0.6],
+];
+
 function rand(min, max) {
   return min + Math.random() * (max - min);
 }
@@ -110,6 +128,65 @@ const Petals = forwardRef(function Petals(
     /* Fixed per-column jitter so the crest keeps its shape frame to frame
        instead of boiling. */
     const crest = Float32Array.from({ length: BUCKETS }, () => Math.random());
+
+    /* The timeline route, resampled at even arc length for the current frame. */
+    let route = [];
+    let routeLength = 0;
+
+    const buildRoute = () => {
+      const source = h > w * 1.15 ? PATH_NARROW : PATH_WIDE;
+      /* Catmull-Rom through the control points, so the corners are curves. */
+      const pts = [];
+      for (let i = 0; i < source.length - 1; i += 1) {
+        const p0 = source[Math.max(0, i - 1)];
+        const p1 = source[i];
+        const p2 = source[i + 1];
+        const p3 = source[Math.min(source.length - 1, i + 2)];
+        for (let k = 0; k < 12; k += 1) {
+          const t = k / 12;
+          const t2 = t * t;
+          const t3 = t2 * t;
+          pts.push([
+            0.5 * ((2 * p1[0]) + (-p0[0] + p2[0]) * t +
+              (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * t2 +
+              (-p0[0] + 3 * p1[0] - 3 * p2[0] + p3[0]) * t3) * w,
+            0.5 * ((2 * p1[1]) + (-p0[1] + p2[1]) * t +
+              (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t2 +
+              (-p0[1] + 3 * p1[1] - 3 * p2[1] + p3[1]) * t3) * h,
+          ]);
+        }
+      }
+      pts.push([source[source.length - 1][0] * w, source[source.length - 1][1] * h]);
+
+      route = pts;
+      routeLength = 0;
+      for (let i = 1; i < route.length; i += 1) {
+        routeLength += Math.hypot(route[i][0] - route[i - 1][0], route[i][1] - route[i - 1][1]);
+      }
+    };
+
+    /** Point and heading a fraction `t` along the route. */
+    const alongRoute = (t) => {
+      const target = Math.max(0, Math.min(1, t)) * routeLength;
+      let walked = 0;
+      for (let i = 1; i < route.length; i += 1) {
+        const a = route[i - 1];
+        const b = route[i];
+        const seg = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+        if (walked + seg >= target) {
+          const f = (target - walked) / seg;
+          return {
+            x: a[0] + (b[0] - a[0]) * f,
+            y: a[1] + (b[1] - a[1]) * f,
+            dx: (b[0] - a[0]) / seg,
+            dy: (b[1] - a[1]) / seg,
+          };
+        }
+        walked += seg;
+      }
+      const last = route[route.length - 1] || [0, 0];
+      return { x: last[0], y: last[1], dx: 1, dy: 0 };
+    };
 
     /*
      * The drift is made of petals, not of a colour. Painting the body as a
@@ -186,6 +263,7 @@ const Petals = forwardRef(function Petals(
       canvas.height = Math.round(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       buildTile(dpr);
+      buildRoute();
       bedSeeded = false;
     };
     resize();
@@ -217,12 +295,12 @@ const Petals = forwardRef(function Petals(
       bedWidth = rect.width;
 
       const fill = fillSelector ? document.querySelector(fillSelector) : null;
-      /* Up to the middle of the wordmark: its lower half is buried in the
-         drift, its top half still reads. */
+      /* Four fifths of the wordmark clears the drift; only its foot is
+         buried. */
       let target = rect.height * 0.2;
       if (fill) {
         const box = fill.getBoundingClientRect();
-        target = Math.max(40, rect.bottom - (box.top + box.height * 0.5));
+        target = Math.max(30, rect.bottom - (box.top + box.height * 0.8));
       }
 
       return { rect, floorY: rect.bottom, target: Math.min(target, rect.height * 0.55) };
@@ -294,6 +372,12 @@ const Petals = forwardRef(function Petals(
     };
 
     const reset = (p) => {
+      /* Which act this petal belongs to. Petals born for one mode keep their
+         plain-physics fall when the page has moved on to another, so a fast
+         scroll across an act boundary hands the field over instead of
+         teleporting stale petals onto the new route (NaN) or letting the
+         overflow cull bleach the fresh ones. */
+      p.kind = 'fall';
       p.size = rand(7, 13);
       p.angle = rand(0, TAU);
       p.spin = rand(-0.55, 0.55) / 60;
@@ -336,7 +420,26 @@ const Petals = forwardRef(function Petals(
         return;
       }
 
+      if (mode === 'path') {
+        /* Strung out along the route, spread either side of it, and each with
+           its own pace so they do not travel as one rigid column. */
+        p.kind = 'path';
+        p.t = seeding ? Math.random() : rand(-0.06, -0.005);
+        p.offset = rand(-1, 1) * Math.min(w, h) * 0.075;
+        p.pace = rand(0.000075, 0.00019);
+        p.alpha = rand(0.45, 0.9);
+        p.size = rand(6, 12);
+        const at = alongRoute(p.t);
+        p.x = at.x - at.dy * p.offset;
+        p.y = at.y + at.dx * p.offset;
+        p.vx = 0;
+        p.vy = 0;
+        p.maxLife = Infinity;
+        return;
+      }
+
       if (mode === 'swirl') {
+        p.kind = 'swirl';
         const fromLeft = Math.random() < 0.5;
         p.x = fromLeft ? rand(-0.14, -0.02) * w : rand(1.02, 1.14) * w;
         p.y = rand(-0.05, 1.05) * h;
@@ -491,7 +594,30 @@ const Petals = forwardRef(function Petals(
           }
         }
 
-        if (mode === 'swirl' && !p.refill) {
+        if (mode === 'path' && p.kind === 'path' && !p.refill) {
+          /* Carried along the route rather than falling. The drift either side
+             of the line breathes, so the stream reads as loose petals on a
+             current and not as beads on a wire. */
+          p.t += p.pace;
+          if (p.t > 1.06) {
+            p.dead = true;
+            continue;
+          }
+          const at = alongRoute(p.t);
+          const wobble = Math.sin(p.phase * 1.7) * 9;
+          const tx = at.x - at.dy * (p.offset + wobble);
+          const ty = at.y + at.dx * (p.offset + wobble);
+          /* Eased toward the target so a resize slides them over rather than
+             teleporting the whole stream. */
+          p.vx = (tx - p.x) * 0.08;
+          p.vy = (ty - p.y) * 0.08;
+          p.x += p.vx;
+          p.y += p.vy;
+          drawPetal(ctx, p);
+          continue;
+        }
+
+        if (mode === 'swirl' && p.kind === 'swirl' && !p.refill) {
           const fx = cfg.current.focus.x * w;
           const fy = cfg.current.focus.y * h;
           const dx = fx - p.x;
@@ -607,8 +733,12 @@ const Petals = forwardRef(function Petals(
         }
         seeded = true;
       } else if (live > want + 8) {
+        /* Thin out strangers from a previous act first; only when the field is
+           being wound down to nothing does the fade take everyone, so a mode
+           hand-off can never bleach the petals that were just seeded for it. */
+        const takeAll = want === 0;
         for (const p of petals) {
-          if (!p.dead && !p.refill) {
+          if (!p.dead && !p.refill && (takeAll || p.kind !== mode)) {
             p.alpha *= 0.97;
             if (p.alpha < 0.05) p.dead = true;
           }
@@ -617,6 +747,19 @@ const Petals = forwardRef(function Petals(
     };
 
     if (MAX) raf = requestAnimationFrame(frame);
+
+    /* Lets a test pump frames: the embedded preview reports the document
+       hidden, so the browser never delivers rAF and the field is otherwise
+       unobservable there. */
+    if (import.meta.env.DEV) {
+      canvas.__step = (n = 1) => {
+        for (let i = 0; i < n; i += 1) {
+          cancelAnimationFrame(raf);
+          frame();
+        }
+        cancelAnimationFrame(raf);
+      };
+    }
 
 
     return () => {

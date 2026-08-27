@@ -26,6 +26,7 @@ export default function Branches() {
         <div
           className={`bough bough--${bough.side}`}
           key={bough.side}
+          data-bough-side={bough.side}
           style={{ left: `${bough.left}%`, top: `${bough.top}%`, width: `${bough.width}%` }}
         >
           <img src="/assets/img/branch-plate.png" alt="" />
