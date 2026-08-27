@@ -157,11 +157,11 @@ export const CARD_RATIO = 249.79 / 355.62; // w / h
 /* A phone has no room for a card beside a column of text, so the hand sits
    lower and the featured card moves above the copy instead of next to it. */
 export const FAN_PHONE = [
-  { left: 6.0, top: 72.0, rotate: -18 },
-  { left: 21.0, top: 68.0, rotate: -9 },
-  { left: 37.0, top: 66.5, rotate: 0 },
-  { left: 53.0, top: 68.0, rotate: 9 },
-  { left: 68.0, top: 72.0, rotate: 18 },
+  { left: 6.0, top: 76.5, rotate: -18 },
+  { left: 21.0, top: 72.5, rotate: -9 },
+  { left: 37.0, top: 71.0, rotate: 0 },
+  { left: 53.0, top: 72.5, rotate: 9 },
+  { left: 68.0, top: 76.5, rotate: 18 },
 ];
 
 export const LAYOUT = {

@@ -24,6 +24,8 @@ gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 /* Each About chapter is fronted by one of the five cards. */
 const CHAPTERS = [
+  /* Cards are dealt in fan order: each chapter lifts the next card from the
+     left, so the hand empties leftmost to rightmost. */
   {
     title: 'Code2Create',
     wordmark: true,
@@ -38,7 +40,7 @@ const CHAPTERS = [
   },
   {
     title: 'ACM',
-    card: 4,
+    card: 1,
     body: [
       'As the official student chapter of the Association for Computing Machinery at VIT Vellore, we’ve been pushing boundaries and challenging conventions since 2009. From research and development to open-source contributions and unorthodox events, we turn ideas into real-world impact.',
       'We don’t just write code — we ask questions, build with purpose, and learn together. With a culture built on trust and innovation, we’re here to build tools, solve problems, and grow as a community — because technology, at its best, brings people together.',
@@ -164,7 +166,7 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
       const layout = () => {
         const source = base();
         const fanWidth = fit(source.fanWidth, phone() ? 0.24 : 0.34);
-        const featureWidth = fit(source.feature.width, phone() ? 0.28 : 0.46);
+        const featureWidth = fit(source.feature.width, phone() ? 0.24 : 0.46);
         return {
           fan: source.fan,
           fanWidth,
@@ -457,10 +459,11 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
           api.setWind(0);
           api.setIntensity(ramp(103, 108));
         } else if (at >= 134) {
-          /* Shed by the boughs, and still falling as the footer takes over. */
+          /* Shed by the boughs, and still falling as the footer takes over —
+             a light fall, so the questions stay the point of the act. */
           api.setMode('drift');
           api.setWind(0.5);
-          api.setIntensity(0.25 * ramp(134, 141));
+          api.setIntensity(0.085 * ramp(134, 141));
         } else {
           api.setIntensity(0);
         }
@@ -556,7 +559,7 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
 
         <div className="ridge ridge--near" aria-hidden="true" />
 
-        <img className="hero-tree" src="/assets/img/tree.png" alt="" aria-hidden="true" />
+        <img className="hero-tree" src="/assets/img/tree.webp" alt="" aria-hidden="true" />
 
         <Branches />
 
@@ -570,7 +573,7 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
             <img src="/assets/svg/wordmark.svg" alt="Code2Create" width="669" height="85" />
           </h1>
           <p className="hero-tagline">Don’t just code for the vibes, Code2Create.</p>
-          <a className="hero-cta" href="#register">
+          <a className="hero-cta" href="https://gravitas.vit.ac.in/events">
             <img src="/assets/svg/btn-box.svg" alt="" aria-hidden="true" />
             <span>Register Now</span>
           </a>

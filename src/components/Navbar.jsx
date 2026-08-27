@@ -6,10 +6,10 @@ import { useEffect, useState } from 'react';
  * is on screen. The fractions below are positions along the master timeline.
  */
 const links = [
-  { label: 'About', at: 0.26 },
-  { label: 'FAQs', at: 0.95 },
-  { label: 'Timeline', at: 0.78 },
-  { label: 'Stats', at: 0.63 },
+  { label: 'About', at: 0.22 },
+  { label: 'FAQs', at: 0.85 },
+  { label: 'Timeline', at: 0.68 },
+  { label: 'Stats', at: 0.55 },
 ];
 
 export default function Navbar() {

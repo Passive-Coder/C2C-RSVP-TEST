@@ -238,7 +238,6 @@
 }
 
 .hero-cta:hover {
-  transform: translateY(-2px);
   filter: drop-shadow(0 0 14px rgba(216, 132, 162, 0.55));
 }
 
@@ -328,10 +327,10 @@
 
 .chapters {
   position: absolute;
-  left: 38%;
-  top: 26%;
+  left: 34%;
+  top: 20%;
   z-index: 12;
-  width: min(46%, 543px);
+  width: min(58%, 720px);
 }
 
 .chapter {
@@ -347,7 +346,9 @@
   gap: 0.28em;
   font-family: var(--font-display);
   font-weight: 500;
-  font-size: clamp(22px, 3.75vw, 48px);
+  /* Height-aware, so a short stage shrinks the heading with everything else
+     and the copy always ends above the fanned cards. */
+  font-size: clamp(22px, min(3.75vw, 6.4vh), 48px);
   line-height: 1.05;
   color: #fff;
 }
@@ -361,17 +362,17 @@
   font-weight: 700;
 }
 
-/* Real copy now, several paragraphs of it — sized so the longest chapter
-   still clears the bottom of a short stage. */
+/* Real copy now, several paragraphs of it — sized against width *and* height
+   so the longest chapter always ends above the fanned cards below. */
 .chapter__body {
-  margin-top: clamp(12px, 3vh, 28px);
-  font-size: clamp(11px, 1.15vw, 15px);
-  line-height: 1.42;
+  margin-top: clamp(10px, 2.6vh, 24px);
+  font-size: clamp(9.5px, min(1.05vw, 2.05vh), 13.5px);
+  line-height: 1.4;
   color: #fff;
 }
 
 .chapter__body p + p {
-  margin-top: 0.65em;
+  margin-top: 0.55em;
 }
 
 /* ------------------------------------------------------------------ *
@@ -870,8 +871,8 @@
 
 @media (max-width: 1100px) {
   .chapters {
-    left: 36%;
-    width: 56%;
+    left: 34%;
+    width: 60%;
   }
 
   .bonsai {
@@ -922,20 +923,21 @@
     font-size: clamp(12px, 3.6vw, 16px);
   }
 
-  /* Below the featured card, which sits across the top on a phone. */
+  /* Below the featured card, which sits across the top on a phone; the copy
+     has to clear the fan of cards waiting further down. */
   .chapters {
     left: 6%;
-    top: 40%;
+    top: 36.5%;
     width: 88%;
   }
 
   .chapter__title {
-    font-size: clamp(22px, 7vw, 34px);
+    font-size: clamp(19px, 5.6vw, 28px);
   }
 
   .chapter__body {
-    font-size: clamp(10.5px, 3.1vw, 13px);
-    line-height: 1.38;
+    font-size: clamp(9px, 2.5vw, 11px);
+    line-height: 1.32;
   }
 
   .card__rank {
@@ -988,7 +990,7 @@
   }
 
   .faq-shell {
-    top: 20%;
+    top: 14%;
     width: calc(100% - 32px);
   }
 
@@ -996,22 +998,23 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  /* One ladder carrying every question. The rungs are sized so all twelve fit
-     the pinned stage — dropping half of them was the old way out. */
+  /* One ladder carrying every question, at a size you can actually read.
+     On a short phone the tail of the ladder runs past the fold — that is the
+     accepted trade for legible rungs. */
   .faq-column {
-    gap: clamp(3px, 0.9vh, 8px);
+    gap: clamp(8px, 1.4vh, 14px);
   }
 
   .plank__face {
-    min-height: 34px;
-    padding-inline: 14px;
-    font-size: 11.5px;
-    line-height: 1.2;
+    min-height: 46px;
+    padding-inline: 16px;
+    font-size: 13.5px;
+    line-height: 1.28;
   }
 
   .plank__answer p {
-    padding-inline: 18px;
-    font-size: 11px;
+    padding-inline: 20px;
+    font-size: 12px;
   }
 
   .rope--near {
