@@ -627,7 +627,7 @@
   left: calc(12% + min(350px, 28%));
   top: 50%;
   z-index: 6;
-  width: min(86vh, 52vw);
+  width: min(94vh, 56vw);
   aspect-ratio: 1;
   pointer-events: none;
   will-change: transform, opacity;
@@ -650,7 +650,9 @@
 
 .rosette__petal-shape {
   fill: url(#rosetteFlush);
-  stroke: rgba(255, 236, 244, 0.55);
+  /* A soft rose rim: white petals overlap white petals, and this is what
+     keeps their edges legible against each other. */
+  stroke: rgba(214, 120, 155, 0.35);
   stroke-width: 0.7;
   stroke-linejoin: round;
 }
@@ -661,9 +663,13 @@
 
 .rosette__vein {
   fill: none;
-  stroke: rgba(158, 58, 94, 0.3);
-  stroke-width: 0.8;
+  stroke: rgba(196, 92, 128, 0.17);
+  stroke-width: 0.7;
   stroke-linecap: round;
+}
+
+.rosette__sepal {
+  fill: #8e2c44;
 }
 
 .rosette__disc {
@@ -672,19 +678,19 @@
 
 .rosette__stamen {
   fill: none;
-  stroke: rgba(214, 122, 154, 0.9);
-  stroke-width: 0.9;
+  stroke: rgba(238, 196, 212, 0.95);
+  stroke-width: 0.8;
   stroke-linecap: round;
 }
 
 .rosette__anther {
-  fill: #f4cf7f;
-  stroke: rgba(122, 74, 22, 0.6);
+  fill: #f7e08e;
+  stroke: rgba(150, 110, 30, 0.55);
   stroke-width: 0.4;
 }
 
 .rosette__pistil {
-  fill: #f0c987;
+  fill: #f3d488;
 }
 
 .bonsai {
@@ -1032,12 +1038,10 @@
     font-size: clamp(11px, 4vw, 18px);
   }
 
-  /* Centred between the bonsai up top and the day card along the bottom;
-     the card is opaque, so the blossom reads around its edges. */
+  /* No room for it here: the phone screen already carries the bonsai and
+     the day card, and the blossom only crowded them. */
   .rosette {
-    left: 50%;
-    top: 46%;
-    width: min(58vh, 94vw);
+    display: none;
   }
 
   /* Centred by arithmetic, not by a transform: the timeline animates
