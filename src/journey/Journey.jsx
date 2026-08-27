@@ -397,9 +397,10 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
          petals that crosses the whole frame. */
       tl.to(q('.bonsai'), { xPercent: 0, autoAlpha: 1, duration: 6, ease: 'power3.out' }, 104);
 
-      /* Scoped to the bonsai so it does not also grab the branch flowers. */
+      /* Scoped to the bonsai so it does not also grab the branch flowers.
+         Ends at 125.5, the moment the bonsai starts to leave. */
       const bonsaiBloom = createBloomTimeline(q('.bonsai')[0], { moments: false });
-      tl.add(bonsaiBloom.duration(22), 105);
+      tl.add(bonsaiBloom.duration(20.5), 105);
 
       /* Fade and rise only — no blur() in these: a filter tween on live text
          repaints the card on every scrubbed frame, and this act already pays
@@ -420,21 +421,24 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
        * settling are all simulated in real time by `useFallingLadder`; the
        * timeline's only job is to say when. Scrolling back up past the cue
        * reels the ladder in again.
+       *
+       * The bonsai is fully out at 129.5 — before the reel's door at 130 —
+       * so while the rig is being hauled off, the stage behind it is bare:
+       * no act re-enters until the reel has finished and the door opens.
        */
-      tl.to(q('.bonsai'), { xPercent: 135, autoAlpha: 0, duration: 5, ease: 'power2.in' }, 128);
+      tl.to(q('.bonsai'), { xPercent: 135, autoAlpha: 0, duration: 4, ease: 'power2.in' }, 125.5);
 
       const FAQ_CUE = 131;
-      /* The act's doors, in timeline seconds. While the ladder is still
-         falling the scroll is walled at EXIT, short of the footer's approach;
-         while it is being towed away, at ENTRY, just below the cue. Nobody
-         leaves the act in either direction before it has finished playing. */
-      const FAQ_EXIT = 141;
+      /* The reel's door, in timeline seconds: while the ladder is being
+         hauled back in, the scroll holds here, just below the cue. The
+         bonsai act's furniture is gone by 129.5, so the stage behind the
+         reel is bare and nothing else can appear until the rig has left.
+         Forward is never walled — scrolling on toward the footer mid-fall
+         is free, and the fall simply plays out as it goes. */
       const FAQ_ENTRY = 130;
 
-      /* L — the FAQ act's scroll span: the shed reaches full by the exit
-         wall, then a short run carries the fall into the footer. Kept tight —
-         the walls above already guarantee the act is watched, so the span no
-         longer needs to buy time with scroll distance. */
+      /* L — the FAQ act's scroll span: the shed reaches full at 141, then a
+         short run carries the fall into the footer. */
       tl.to({}, { duration: 13 }, 133);
 
       /* ---------------- petals, cued off overall progress ------------- */
@@ -482,11 +486,12 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
       };
 
       /*
-       * The act must be watched whole: while the fall or the tow is still
-       * playing, the scroll is walled at the section's doors and let go the
-       * moment the simulation settles. A nav jump is a deliberate leap rather
-       * than a scroll, so it stands the walls down — for a window long enough
-       * to carry the smooth scroll across the act and play its tow out, and
+       * The tow must be watched whole: while the ladder is being hauled back
+       * in, the scroll is walled at the reel's door and let go the moment
+       * the rig is off. Only the reverse direction is gated — a fall never
+       * holds the scroll. A nav jump is a deliberate leap rather than a
+       * scroll, so it stands the wall down — for a window long enough to
+       * carry the smooth scroll across the act and play its tow out, and
        * re-armed sooner if the user takes the wheel back. Enforcement is an
        * instant scroll: the page's own smooth behavior would turn the wall
        * to rubber.
@@ -500,13 +505,11 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
       };
 
       const gate = (self) => {
-        const busy = ladder.getBusy();
-        if (!busy) return;
+        if (ladder.getBusy() !== 'reel') return;
         if (performance.now() < leapUntil) return;
-        const perSecond = (self.end - self.start) / tl.duration();
-        const wall = self.start + (busy === 'fall' ? FAQ_EXIT : FAQ_ENTRY) * perSecond;
-        const at = self.scroll();
-        if (busy === 'fall' ? at > wall : at < wall) {
+        const wall =
+          self.start + (FAQ_ENTRY / tl.duration()) * (self.end - self.start);
+        if (self.scroll() < wall) {
           window.scrollTo({ top: wall, behavior: 'instant' });
         }
       };
@@ -516,7 +519,9 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
         trigger: root,
         start: 'top top',
         end: 'bottom bottom',
-        scrub: reduced ? true : 0.55,
+        /* A slightly longer catch-up spreads a hard fling over more frames —
+           the set glides rather than snapping after the wheel. */
+        scrub: reduced ? true : 0.8,
         invalidateOnRefresh: true,
         onRefreshInit: () => {
           /* Card geometry depends on the breakpoint and the stage's aspect, so

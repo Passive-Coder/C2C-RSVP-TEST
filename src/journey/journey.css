@@ -8,11 +8,12 @@
  * tablets and phones rather than just scaling it down.
  * ------------------------------------------------------------------ */
 
-/* 800vh of travel over the timeline's 146s — the same pace per second the
-   1000vh track gave the old 164s cut; only the FAQ act's dead span went. */
+/* 1050vh of travel over the timeline's 146s — roughly 30% more scroll per
+   timeline second than the original cut, so the whole journey plays slower
+   under the wheel without any act gaining or losing share. */
 .journey {
   position: relative;
-  height: 900vh;
+  height: 1150vh;
 }
 
 .journey__stage {
@@ -623,6 +624,10 @@
   z-index: 7;
   width: clamp(176px, 25.6%, 352px);
   height: clamp(256px, 58%, 512px);
+  /* Its own layer: the bloom repaints inside it every scrubbed frame, and
+     the slide on/off stage is a transform — neither should damage the rest
+     of the stage. */
+  will-change: transform;
 }
 
 .bonsai .plant-shell {

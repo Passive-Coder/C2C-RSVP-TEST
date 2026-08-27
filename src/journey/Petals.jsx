@@ -69,19 +69,46 @@ function rand(min, max) {
   return min + Math.random() * (max - min);
 }
 
+/*
+ * Pre-rendered petal bitmaps, one per quantized tint. Filling the petal's
+ * bezier outline petal by petal was the field's main per-frame draw cost;
+ * a sprite blit is the same picture for a fraction of it. Twelve tints
+ * cover the old continuous rand(-26, 30) shift more finely than the eye
+ * reads at these sizes, and the flutter's squish still happens live, as an
+ * x-scale on the blit. Supersampled at 32px and drawn down to 6–13.
+ */
+const SPRITE_TINTS = 12;
+const SPRITE_BOX = 32;
+const SPRITE_PAD = 2;
+const SPRITE_SCALE = (SPRITE_BOX + SPRITE_PAD * 2) / SPRITE_BOX;
+let sprites = null;
+
+const buildSprites = () =>
+  Array.from({ length: SPRITE_TINTS }, (_, i) => {
+    const shift = -26 + (56 * i) / (SPRITE_TINTS - 1);
+    const s = SPRITE_BOX;
+    const c = document.createElement('canvas');
+    c.width = SPRITE_BOX + SPRITE_PAD * 2;
+    c.height = c.width;
+    const g = c.getContext('2d');
+    g.translate(c.width / 2, c.height / 2);
+    g.fillStyle = `rgb(${BASE[0] + shift * 0.5}, ${BASE[1] + shift}, ${BASE[2] + shift * 0.7})`;
+    g.beginPath();
+    g.moveTo(0, -s * 0.5);
+    g.bezierCurveTo(s * 0.5, -s * 0.42, s * 0.46, s * 0.3, 0, s * 0.5);
+    g.bezierCurveTo(-s * 0.46, s * 0.3, -s * 0.5, -s * 0.42, 0, -s * 0.5);
+    g.fill();
+    return c;
+  });
+
 function drawPetal(ctx, p) {
-  const s = p.size;
+  const w = p.size * SPRITE_SCALE * (Math.cos(p.phase) * 0.34 + 0.66);
+  const h = p.size * SPRITE_SCALE;
   ctx.save();
   ctx.translate(p.x, p.y);
   ctx.rotate(p.angle);
-  ctx.scale(Math.cos(p.phase) * 0.34 + 0.66, 1);
   ctx.globalAlpha = p.alpha;
-  ctx.fillStyle = p.fill;
-  ctx.beginPath();
-  ctx.moveTo(0, -s * 0.5);
-  ctx.bezierCurveTo(s * 0.5, -s * 0.42, s * 0.46, s * 0.3, 0, s * 0.5);
-  ctx.bezierCurveTo(-s * 0.46, s * 0.3, -s * 0.5, -s * 0.42, 0, -s * 0.5);
-  ctx.fill();
+  ctx.drawImage(p.sprite, -w / 2, -h / 2, w, h);
   ctx.restore();
 }
 
@@ -118,6 +145,7 @@ const Petals = forwardRef(function Petals(
     const ctx = canvas.getContext('2d');
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const MAX = reduced ? 0 : max;
+    if (!sprites) sprites = buildSprites();
 
     const petals = Array.from({ length: MAX }, () => ({ dead: true }));
     let w = 0;
@@ -404,8 +432,7 @@ const Petals = forwardRef(function Petals(
       p.refill = false;
       p.life = 0;
       p.maxLife = rand(620, 1150);
-      const shift = rand(-26, 30);
-      p.fill = `rgb(${BASE[0] + shift * 0.5}, ${BASE[1] + shift}, ${BASE[2] + shift * 0.7})`;
+      p.sprite = sprites[(Math.random() * sprites.length) | 0];
     };
 
     const spawn = (p, seeding) => {

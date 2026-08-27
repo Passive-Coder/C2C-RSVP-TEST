@@ -461,6 +461,20 @@ export function Plant() {
       role="img"
     >
       <div className="plant-aura" aria-hidden="true" />
+      {/* The pot-and-trunk plate lives OUTSIDE the animated SVG: inside it,
+          the 400KB raster was re-composited on every scrubbed frame of the
+          bloom. As a sibling <img> it rasterizes once and the SVG above it
+          repaints only its own vectors. Same box, same contain fit, so the
+          geometry is identical (the plate is exactly 387×493, like the
+          viewBox). */}
+      <img
+        className="plant-base"
+        src="/plants/plant-01.svg"
+        width="387"
+        height="493"
+        alt=""
+        aria-hidden="true"
+      />
       <svg
         className="plant-svg"
         viewBox="0 0 387 493"
@@ -523,16 +537,6 @@ export function Plant() {
             <stop offset="1" stopColor="#d77b98" />
           </radialGradient>
         </defs>
-
-        <image
-          className="plant-base-image"
-          href="/plants/plant-01.svg"
-          x="0"
-          y="0"
-          width="387"
-          height="493"
-          preserveAspectRatio="xMidYMid meet"
-        />
 
         <g className="pedicel-canopy">
           {blossoms.map((bloom, index) => (
