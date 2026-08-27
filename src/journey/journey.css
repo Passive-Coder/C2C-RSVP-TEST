@@ -714,6 +714,17 @@
   color: var(--rose);
 }
 
+/* The phase's date line, quieter than the title, above the body. */
+.day__when {
+  margin-top: clamp(4px, 1vh, 10px);
+  font-family: var(--font-display);
+  font-size: clamp(10px, 1.05vw, 14px);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+  color: rgba(255, 235, 243, 0.72);
+}
+
 .day__body {
   margin-top: clamp(8px, 2.4vh, 22px);
   font-family: var(--font-display);
@@ -875,12 +886,26 @@
   line-height: 1.25;
   text-align: left;
   color: var(--ink-card);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.plank__face:hover {
-  transform: translateY(-2px) rotate(-0.35deg);
-  box-shadow: 0 12px 22px rgba(0, 0, 0, 0.46), inset 0 1px 0 rgba(255, 255, 255, 0.34);
+/* No hover theatrics — the chevron is the affordance, and it turns over
+   when the answer is open. */
+.plank__chevron {
+  flex: 0 0 auto;
+  width: clamp(12px, 1.1vw, 16px);
+  height: auto;
+  margin-left: auto;
+  fill: none;
+  stroke: var(--ink-card);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.75;
+  transition: transform 0.3s ease;
+}
+
+.plank__face[aria-expanded='true'] .plank__chevron {
+  transform: rotate(180deg);
 }
 
 .plank__face[aria-expanded='true'] {
@@ -1049,6 +1074,10 @@
   .day__body {
     font-size: clamp(12px, 3.7vw, 16px);
     line-height: 1.4;
+  }
+
+  .day__when {
+    font-size: clamp(11px, 3.2vw, 14px);
   }
 
   .branches {

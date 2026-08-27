@@ -13,6 +13,22 @@ const links = [
   { label: 'Stats', at: 0.62 },
 ];
 
+/*
+ * The warp: the stage blurs out, the scroll lands INSTANTLY at the target,
+ * and the stage blurs back in — no riding the whole journey there. The
+ * scrub's own catch-up plays behind the veil.
+ */
+let warpTimer = 0;
+const warpTo = (top) => {
+  const rootEl = document.documentElement;
+  clearTimeout(warpTimer);
+  rootEl.classList.add('nav-warp');
+  warpTimer = setTimeout(() => {
+    window.scrollTo({ top, behavior: 'instant' });
+    warpTimer = setTimeout(() => rootEl.classList.remove('nav-warp'), 620);
+  }, 240);
+};
+
 export default function Navbar() {
   const [open, setOpen] = useState(false);
 
@@ -34,7 +50,7 @@ export default function Navbar() {
     window.dispatchEvent(new Event('journey:leap'));
 
     const travel = journey.offsetHeight - window.innerHeight;
-    window.scrollTo({ top: journey.offsetTop + travel * at, behavior: 'smooth' });
+    warpTo(journey.offsetTop + travel * at);
   };
 
   return (
@@ -46,7 +62,7 @@ export default function Navbar() {
           onClick={(event) => {
             event.preventDefault();
             window.dispatchEvent(new Event('journey:leap'));
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            warpTo(0);
           }}
         >
           <img src="/assets/svg/logo.svg" alt="" width="34" height="38" />

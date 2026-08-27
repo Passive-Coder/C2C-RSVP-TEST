@@ -417,7 +417,20 @@ export function useFallingLadder(stageRef) {
     const relayout = () => {
       if (running) return;
       if (wanted) {
-        if (sim === null && !startFall()) wanted = false;
+        if (sim === null) {
+          if (!startFall()) wanted = false;
+          return;
+        }
+        /* The act has already played and the rig is at rest. The old inline
+           positions were measured against the old layout, so a resize used
+           to leave the planks scattered across the new one — re-measure and
+           pin the rig to its rest pose instead. */
+        const measured = measure();
+        if (!measured) return;
+        world = measured;
+        sim = createLadderSim(world);
+        sim.finish();
+        drawRest();
         return;
       }
       idle();

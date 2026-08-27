@@ -36,8 +36,7 @@ const CHAPTERS = [
     body: [
       'Code2Create is ACM-VIT’s flagship 48-hour national hackathon open to participants from colleges across India. C2C is all about pushing boundaries and building innovative projects.',
       'With multiple tracks to suit diverse interests, the event brings together participants to take on real-world challenges, team up with peers and learn from industry mentors.',
-      'It’s a space where creativity meets skill and young developers get to showcase their talent.',
-      'Whether you’re someone who’s just beginning to build your skill set or aiming to claim your next hackathon prize, C2C is the right event for you.',
+      'Whether you’re just starting out or chasing your next hackathon prize, C2C is the right event for you.',
       'Be part of a culture where we don’t just code for the vibes, we code to create.',
     ],
   },
@@ -76,12 +75,55 @@ const CHAPTERS = [
   },
 ];
 
-/* The schedule is still under wraps: the three timeline cards spell it out,
-   each carrying a placeholder line until the real days land. */
-const TIMELINE_TEASER = [
-  { title: 'Yet', line: 'The Code2Create timeline is still being crafted.' },
-  { title: 'To Be', line: 'Day-wise tracks, talks and showdowns will drop right here.' },
-  { title: 'Announced', line: 'Stay tuned — the full schedule lands soon.' },
+/* The C2C 7.0 schedule, one phase per card, flipped through as the act
+   scrubs by. Copy is condensed from the full format so each card reads in
+   its slot. */
+const TIMELINE_PHASES = [
+  {
+    title: 'Code2Create 7.0',
+    when: 'Hackathon format',
+    line: 'An online idea submission, then a 48-hour offline build at VIT Vellore for the shortlisted teams.',
+  },
+  {
+    title: 'Idea Submission',
+    when: '31 Aug – 5 Sep 2026 · online',
+    line: 'Pick a problem statement and outline your solution on the portal. External entries close 3 Sep, 11:59 PM IST — earlier, to plan travel — and internal entries close 5 Sep. Shortlisted teams are invited to campus.',
+  },
+  {
+    title: 'Check-In',
+    when: '7 Sep · 2:00 – 3:00 PM IST',
+    line: 'Shortlisted teams report on campus, complete verification, and collect their participation kits.',
+  },
+  {
+    title: 'Opening Ceremony',
+    when: '7 Sep · 3:00 – 4:00 PM IST',
+    line: 'Formal inauguration of Code2Create 7.0, with a walkthrough of the rules, evaluation criteria, and the support available through the event.',
+  },
+  {
+    title: 'Hacking Starts',
+    when: '7 Sep, 4:00 PM – 8 Sep, 6:00 AM IST',
+    line: 'Teams translate their submitted ideas into a concrete technical plan and start building — the architecture set up here carries the project through the hackathon.',
+  },
+  {
+    title: 'Review 1 — Progress Check',
+    when: '8 Sep · 10:00 AM – 1:00 PM IST',
+    line: 'Walk mentors through your approach, early progress, and roadmap. Feedback here course-corrects before the heavier build phases — no team is eliminated.',
+  },
+  {
+    title: 'Hacking Continues',
+    when: '8 Sep, 2:00 PM – 9 Sep, 1:00 AM IST',
+    line: 'Teams demonstrate working progress and explain their implementation, remaining roadmap, and the overall scope of the solution.',
+  },
+  {
+    title: 'Review 2 — Prototype Evaluation',
+    when: '9 Sep · 1:00 – 6:00 AM IST · eliminatory',
+    line: 'Present a functional prototype, demonstrate core features, and address scalability. The highest-performing teams qualify for the final pitch.',
+  },
+  {
+    title: 'Final Pitch & Judging',
+    when: '9 Sep · 10:00 AM – 1:00 PM IST',
+    line: 'Finalists present their completed solutions to the panel. Winners are announced and felicitated at the closing ceremony.',
+  },
 ];
 
 /* Deterministic so the layout does not jump between renders. */
@@ -97,24 +139,69 @@ const EMBERS = [
 
 /* One flat list with stable ids. A phone shows every one of them on a single
    ladder rather than dropping half the answers, and the id a panel is keyed by
-   does not change when the breakpoint does. */
+   does not change when the breakpoint does. Answers carried over from the
+   6.0 site, with registration pointed at the GraVITas portal. */
 const FAQ = [
   {
     id: 'register',
     q: 'Who all can register?',
     a: 'Students from all over the country are eligible to participate in Code2Create. Everybody is welcome to make a difference.',
   },
-  { id: 'cost', q: 'What will the hackathon cost me?' },
-  { id: 'hardware', q: 'Can I implement my idea in hardware?' },
-  { id: 'kind', q: 'What kind of hackathon is Code2Create?' },
-  { id: 'team', q: 'How many members can constitute a team?' },
-  { id: 'stay', q: 'Will there be accommodation for external participants' },
-  { id: 'how', q: 'How to register?' },
-  { id: 'early', q: 'Can I start working on my hack before the hackathon?' },
-  { id: 'tech', q: 'Is the hackathon only about technology?' },
-  { id: 'judging', q: 'What will be the judging criteria?' },
-  { id: 'benefit', q: 'How will I benefit from attending this hackathon?' },
-  { id: 'travel', q: 'Will there be travel reimbursements provided?' },
+  {
+    id: 'cost',
+    q: 'What will the hackathon cost me?',
+    a: 'Nothing, it’s absolutely free. You cannot put a price on groundbreaking ideas.',
+  },
+  {
+    id: 'hardware',
+    q: 'Can I implement my idea in hardware?',
+    a: 'Sure! There’s no bias between software and hardware. But you’ll have to bring your own hardware.',
+  },
+  {
+    id: 'kind',
+    q: 'What kind of hackathon is Code2Create?',
+    a: 'Code2Create is a tech-based hackathon.',
+  },
+  {
+    id: 'team',
+    q: 'How many members can constitute a team?',
+    a: 'There should be a minimum of 3 members and can be up to 5 members in a team. Each member of the team needs to register individually on the GraVITas portal.',
+  },
+  {
+    id: 'stay',
+    q: 'Will there be accommodation for external participants',
+    a: 'Yes, we will provide accommodation at VIT.',
+  },
+  {
+    id: 'how',
+    q: 'How to register?',
+    a: 'Go to the GraVITas portal, search for Code2Create and register.',
+  },
+  {
+    id: 'early',
+    q: 'Can I start working on my hack before the hackathon?',
+    a: 'No, you are not permitted to work on pre-existing projects in the hackathon. To maintain fair standards of judgment you will begin working on your hack after reporting to the venue.',
+  },
+  {
+    id: 'tech',
+    q: 'Is the hackathon only about technology?',
+    a: 'We are tech enthusiasts but we believe “all work and no play makes Jack a dull boy.” We have numerous fun activities planned for you.',
+  },
+  {
+    id: 'judging',
+    q: 'What will be the judging criteria?',
+    a: 'Innovation and creativity, problem relevance, technical complexity, implementation and functionality, user experience, scalability and future scope, presentation and communication, novelty.',
+  },
+  {
+    id: 'benefit',
+    q: 'How will I benefit from attending this hackathon?',
+    a: 'Code2Create is a place for innovators to create and make a difference. You will get an opportunity to interact with ingenious minds. In addition, we have cash prizes, licenses, schwags, cloud credits and goodies for the winner.',
+  },
+  {
+    id: 'travel',
+    q: 'Will there be travel reimbursements provided?',
+    a: 'Travel reimbursement is not provided for external participants.',
+  },
 ];
 
 export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
@@ -475,16 +562,20 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
 
       /* Fade and rise only — no blur() in these: a filter tween on live text
          repaints the card on every scrubbed frame, and this act already pays
-         for the bloom. */
+         for the bloom. Nine phase cards share the act evenly; the last one
+         holds until the container fades. */
       const days = q('.day');
       gsap.set(days, { autoAlpha: 0, y: 26 });
-      tl.to(q('.days'), { autoAlpha: 1, duration: 2 }, 106)
-        .to(days[0], { autoAlpha: 1, y: 0, duration: 2 }, 106.4)
-        .to(days[0], { autoAlpha: 0, y: -26, duration: 1.8 }, 112.5)
-        .to(days[1], { autoAlpha: 1, y: 0, duration: 1.8 }, 113.2)
-        .to(days[1], { autoAlpha: 0, y: -26, duration: 1.8 }, 119.5)
-        .to(days[2], { autoAlpha: 1, y: 0, duration: 1.8 }, 120.2)
-        .to(q('.days'), { autoAlpha: 0, duration: 3 }, 126);
+      tl.to(q('.days'), { autoAlpha: 1, duration: 2 }, 106);
+      const DAY_SLOT = 20 / days.length;
+      days.forEach((day, index) => {
+        const at = 106 + index * DAY_SLOT;
+        tl.to(day, { autoAlpha: 1, y: 0, duration: DAY_SLOT * 0.45 }, at + 0.35);
+        if (index < days.length - 1) {
+          tl.to(day, { autoAlpha: 0, y: -26, duration: DAY_SLOT * 0.5 }, at + DAY_SLOT);
+        }
+      });
+      tl.to(q('.days'), { autoAlpha: 0, duration: 3 }, 126);
 
       /*
        * J/K — the bonsai leaves, and the FAQ act takes over. The boughs being
@@ -784,9 +875,10 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
           <Plant />
         </div>
         <div className="days">
-          {TIMELINE_TEASER.map((slot, index) => (
+          {TIMELINE_PHASES.map((slot, index) => (
             <article className="moment day" key={slot.title} aria-hidden={index !== 0}>
               <h3 className="day__title">{slot.title}</h3>
+              <p className="day__when">{slot.when}</p>
               <p className="day__body">{slot.line}</p>
             </article>
           ))}
@@ -813,6 +905,13 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
                           onClick={() => onFaqToggle(item.id)}
                         >
                           <span>{item.q}</span>
+                          <svg
+                            className="plank__chevron"
+                            viewBox="0 0 16 16"
+                            aria-hidden="true"
+                          >
+                            <path d="M 3 5.5 L 8 10.5 L 13 5.5" />
+                          </svg>
                         </button>
                       </h3>
                       <div className="plank__answer" id={`faq-${item.id}`} data-open={open}>
