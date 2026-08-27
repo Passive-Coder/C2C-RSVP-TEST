@@ -5,6 +5,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 import Lanterns, { Wind, LANTERNS } from './Lanterns.jsx';
 import Branches from './Branches.jsx';
+import Rosette from './Rosette.jsx';
 import { useFallingLadder } from './fallingLadder/index.js';
 import Cards, {
   Emblem,
@@ -397,6 +398,30 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
          petals that crosses the whole frame. */
       tl.to(q('.bonsai'), { xPercent: 0, autoAlpha: 1, duration: 6, ease: 'power3.out' }, 104);
 
+      /* The great blossom behind the day card: it fades up with the act,
+         turns slowly under the scroll, and shows its five petals one at a
+         time — each unfolding from the heart outward — then leaves with the
+         days, fully dark by 129 so the FAQ act still opens on a bare stage. */
+      const rosette = q('.rosette')[0];
+      const rosettePetals = q('.rosette__petal');
+      gsap.set(rosette, { xPercent: -50, yPercent: -50, autoAlpha: 0, rotation: -24 });
+      gsap.set(rosettePetals, {
+        autoAlpha: 0,
+        scale: 0.3,
+        rotation: -16,
+        transformOrigin: '50% 100%',
+      });
+      tl.to(rosette, { autoAlpha: 0.85, duration: 2.5 }, 105)
+        .to(rosette, { rotation: 36, duration: 22, ease: 'none' }, 105)
+        .to(rosette, { autoAlpha: 0, duration: 2.6 }, 126.4);
+      rosettePetals.forEach((petal, index) => {
+        tl.to(
+          petal,
+          { autoAlpha: 1, scale: 1, rotation: 0, duration: 2.8, ease: 'power2.out' },
+          106.5 + index * 3.2,
+        );
+      });
+
       /* Scoped to the bonsai so it does not also grab the branch flowers.
          Ends at 125.5, the moment the bonsai starts to leave. */
       const bonsaiBloom = createBloomTimeline(q('.bonsai')[0], { moments: false });
@@ -694,6 +719,7 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
         </h2>
 
         {/* ---------- timeline ---------- */}
+        <Rosette />
         <div className="bonsai" id="timeline">
           <Plant />
         </div>

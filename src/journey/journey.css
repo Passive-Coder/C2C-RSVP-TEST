@@ -617,6 +617,54 @@
  * Timeline
  * ------------------------------------------------------------------ */
 
+/* The great blossom behind the day card: below the card (12) and the
+   bonsai (7), above the sky wash — an ornament, never a curtain. Centred
+   on the card, sized huge but bounded by the frame. */
+.rosette {
+  position: absolute;
+  left: 40%;
+  top: 50%;
+  z-index: 6;
+  width: min(86vh, 52vw);
+  aspect-ratio: 1;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.rosette svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.rosette__petal {
+  will-change: transform, opacity;
+}
+
+.rosette__petal-shape {
+  fill: url(#rosettePetalTint);
+  stroke: rgba(255, 226, 238, 0.38);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
+.rosette__vein {
+  fill: none;
+  stroke: rgba(122, 31, 66, 0.45);
+  stroke-width: 1.1;
+  stroke-linecap: round;
+}
+
+.rosette__core {
+  stroke: rgba(255, 232, 180, 0.5);
+  stroke-width: 0.8;
+}
+
+.rosette__dot {
+  fill: #eec272;
+}
+
 .bonsai {
   position: absolute;
   right: 6%;
@@ -955,6 +1003,14 @@
 
   .lantern__label {
     font-size: clamp(11px, 4vw, 18px);
+  }
+
+  /* Centred between the bonsai up top and the day card along the bottom;
+     the card is opaque, so the blossom reads around its edges. */
+  .rosette {
+    left: 50%;
+    top: 46%;
+    width: min(58vh, 94vw);
   }
 
   /* Centred by arithmetic, not by a transform: the timeline animates
