@@ -51,14 +51,16 @@ const SLUMP = 0.14;
  * carried along it so petals travel at an even speed rather than sprinting
  * through the straights.
  */
+/* Both routes begin and end well outside the frame, so neither the mouth nor
+   the tail of the stream is ever on screen. */
 const PATH_WIDE = [
-  [0.045, 0.02], [0.05, 0.3], [0.075, 0.62], [0.11, 0.8],
+  [-0.08, -0.1], [0.02, 0.14], [0.05, 0.3], [0.075, 0.62], [0.11, 0.8],
   [0.2, 0.87], [0.34, 0.885], [0.46, 0.885], [0.56, 0.86],
   [0.63, 0.72], [0.665, 0.45], [0.71, 0.24], [0.79, 0.16],
-  [0.88, 0.14], [0.97, 0.14],
+  [0.88, 0.14], [1.08, 0.13],
 ];
 const PATH_NARROW = [
-  [-0.02, 0.6], [0.2, 0.585], [0.5, 0.58], [0.8, 0.585], [1.02, 0.6],
+  [-0.12, 0.61], [0.2, 0.585], [0.5, 0.58], [0.8, 0.585], [1.12, 0.61],
 ];
 
 function rand(min, max) {
@@ -422,12 +424,16 @@ const Petals = forwardRef(function Petals(
 
       if (mode === 'path') {
         /* Strung out along the route, spread either side of it, and each with
-           its own pace so they do not travel as one rigid column. */
+           its own pace so they do not travel as one rigid column. Every spawn
+           lands somewhere along the whole route — never queued at the mouth —
+           so the stream is full from its first frame; latecomers fade in
+           where they appear instead of popping. */
         p.kind = 'path';
-        p.t = seeding ? Math.random() : rand(-0.06, -0.005);
+        p.t = rand(-0.02, 1.0);
         p.offset = rand(-1, 1) * Math.min(w, h) * 0.075;
         p.pace = rand(0.000075, 0.00019);
-        p.alpha = rand(0.45, 0.9);
+        p.fade = rand(0.45, 0.9);
+        p.alpha = seeding ? p.fade : 0;
         p.size = rand(6, 12);
         const at = alongRoute(p.t);
         p.x = at.x - at.dy * p.offset;
@@ -485,11 +491,19 @@ const Petals = forwardRef(function Petals(
     let seeded = false;
     let lastMode = cfg.current.mode;
     let clock = 0;
+    let lastStamp = 0;
 
     const frame = () => {
       raf = requestAnimationFrame(frame);
       ctx.clearRect(0, 0, w, h);
       clock += 1;
+
+      /* Wall-clock pacing for the routed stream: a scrub-heavy scroll frame
+         (the bonsai act) drops rAF ticks, and per-frame advance would read as
+         the river pausing. Scaled by real elapsed time it keeps its speed. */
+      const now = performance.now();
+      const dtScale = lastStamp ? Math.min(3.5, Math.max(0.5, (now - lastStamp) / 16.667)) : 1;
+      lastStamp = now;
 
       const { mode, intensity, wind } = cfg.current;
       if (mode !== lastMode) {
@@ -598,8 +612,9 @@ const Petals = forwardRef(function Petals(
           /* Carried along the route rather than falling. The drift either side
              of the line breathes, so the stream reads as loose petals on a
              current and not as beads on a wire. */
-          p.t += p.pace;
-          if (p.t > 1.06) {
+          if (p.alpha < p.fade) p.alpha = Math.min(p.fade, p.alpha + 0.035);
+          p.t += p.pace * dtScale;
+          if (p.t > 1.03) {
             p.dead = true;
             continue;
           }

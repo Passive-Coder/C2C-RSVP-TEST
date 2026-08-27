@@ -12,8 +12,9 @@
  * point pinned to the limb: it turns and slides with it, and the ladder hangs
  * off wherever it has got to.
  *
- * The act plays once, in real time, when the journey arrives at it, and reels
- * back in when the journey leaves it going the other way. Neither is scrubbed
+ * The act plays once, in real time, when the journey arrives at it, and is
+ * towed off through the frame's sides when the journey leaves it going the
+ * other way. Neither is scrubbed
  * — a fall stepped through by a scroll wheel is not a fall — so this owns the
  * whole act, the boughs and the FAQ panel included: it shows them as the fall
  * begins and only hides them once the rope is home, which is what keeps the
@@ -217,7 +218,8 @@ export function useFallingLadder(stageRef) {
       });
 
       if (!columns.length) return null;
-      return { boughs, columns };
+      /* The pull-away needs to know where the frame's edges are. */
+      return { boughs, columns, stageWidth: stageRect.width };
     };
 
     /* ---------------- drawing ---------------- */

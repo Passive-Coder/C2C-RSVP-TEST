@@ -17,9 +17,9 @@
  * plank of text, and text that rolls with the rope is unreadable, so the
  * ladder leans without ever turning.
  *
- * Scrolling back up reels the ladder in — see `createReelSim` at the foot of
- * this file, which hauls the rope home and stacks the rungs back into the roll
- * they were paid out of.
+ * Scrolling back up tows the act away — see `createReelSim` at the foot of
+ * this file, which drags each bough out through its own side of the frame
+ * with the ladder trailing on the same cord physics.
  *
  * Rates and times below are in *simulation* seconds. The ticker feeds this
  * real time divided by TIME_SCALE, so the act plays out that much slower than
@@ -34,7 +34,7 @@
 const DEG = Math.PI / 180;
 
 /** Real seconds per simulation second. At 1 the act was over before it read. */
-export const TIME_SCALE = 2.5;
+export const TIME_SCALE = 1.9;
 
 /** Fixed solver step. The cords are stiff, so this sits well inside them. */
 export const SIM_STEP = 1 / 600;
@@ -135,9 +135,6 @@ function anchorAt(bough, anchor) {
   anchor.accX = phiA * -ry - phiV * phiV * rx;
   return anchor;
 }
-
-/** Where a rung sits in the roll, counting down from the knot. */
-const stackAt = (column, index) => column.anchorY + index * STACK_GAP;
 
 export function createLadderSim(world) {
   const { boughs, columns } = world;
@@ -353,52 +350,57 @@ export function createLadderSim(world) {
   };
 }
 
-/* ---- reeling in ----------------------------------------------------- */
+/* ---- pulling away --------------------------------------------------- */
 
 /*
- * Scrolling back up hauls the rope home. That is not the fall run backwards:
- * a fall is gravity let go of, and a reel is a hand pulling, so it is its own
- * short motion. The rope is drawn in at the knot, which lifts the whole
- * hanging ladder at once; each rung rises until it reaches the knot, and then
- * stops there and lets the ones below it come up under it. By the time the
- * last rung arrives the ladder is a roll again — the same roll the fall starts
- * from, so the act can be scrolled through as many times as you like.
+ * Scrolling back up strikes the set. Each bough is dragged out through its
+ * own side of the frame — the left bough leaves stage left, the right one
+ * stage right — and the ladder, still tied on, is towed along with it.
+ * Nothing about the tow is written onto the rungs: the bough moves, the
+ * knots move with it, and the cords pass that on exactly the way they did
+ * during the fall, so the ladder trails its bough, leans against the drag
+ * and keeps swinging on its own physics until the whole rig is off screen.
  */
 
-/** Sim seconds to haul a ladder of any length home. */
-const REEL_TIME = 0.42;
-/** Whatever sideways the ladder still had dies off as the rope goes tight. */
-const REEL_SWAY_DECAY = 9;
+/** Sim seconds for a bough to clear the frame. Ends at full speed — yanked. */
+const EXIT_TIME = 0.85;
+/** Clears the edge with room for the ladder trailing at full lean. */
+const EXIT_MARGIN = 90;
+/*
+ * The tow's own pendulum. The fall's sway spring is far too stiff to show a
+ * horizontal drag — the ladder would track its bough almost rigidly — so the
+ * tow hangs the column on a softer one and lets it lean further.
+ */
+const EXIT_SWAY_FREQ = 6;
+const EXIT_SWAY_DAMPING = 0.9;
+const EXIT_MAX_SWAY = 10 * DEG;
 
-/** Slow off the mark, quick through the middle, easy at the top. */
-const smoothstep = (t) => t * t * (3 - 2 * t);
+const easeInQuad = (t) => t * t;
 
 export function createReelSim(world) {
-  const { columns } = world;
+  const { boughs, columns, stageWidth } = world;
 
-  let travel = 0;
-  columns.forEach((column) => {
-    column.rungs.forEach((rung, index) => {
-      rung.slot = stackAt(column, index);
-      rung.from = rung.pos;
-      rung.v = 0;
-      rung.taut = true;
-      travel = Math.max(travel, rung.from - rung.slot);
-    });
+  boughs.forEach((bough) => {
+    bough.exitFrom = bough.tx;
+    /* Out through its own edge: fully past the frame plus margin. */
+    bough.exitTo =
+      bough.dir > 0
+        ? -(bough.left + bough.width + EXIT_MARGIN)
+        : (stageWidth ?? bough.width * 2) - bough.left + EXIT_MARGIN;
+    bough.tvx = 0;
+    bough.tax = 0;
   });
+
+  /* The rungs keep whatever position and speed they had — a ladder pulled
+     back mid-fall is towed away still falling. */
+
+  const SWAY_EXIT_W2 = EXIT_SWAY_FREQ * EXIT_SWAY_FREQ;
+  const SWAY_EXIT_C = 2 * EXIT_SWAY_DAMPING * EXIT_SWAY_FREQ;
 
   let time = 0;
   let done = false;
 
   const finish = () => {
-    columns.forEach((column) => {
-      column.sway = 0;
-      column.swayV = 0;
-      column.rungs.forEach((rung, index) => {
-        rung.pos = stackAt(column, index);
-        rung.v = 0;
-      });
-    });
     done = true;
   };
 
@@ -410,18 +412,75 @@ export function createReelSim(world) {
     step(dt) {
       if (done) return;
       time += dt;
-      const hauled = smoothstep(Math.min(1, time / REEL_TIME)) * travel;
-      const decay = Math.exp(-REEL_SWAY_DECAY * dt);
-      columns.forEach((column) => {
-        column.sway *= decay;
-        column.swayV *= decay;
-        column.rungs.forEach((rung) => {
-          /* The rope only shortens, so a rung that has reached the knot has
-             arrived — it cannot be pulled up past the thing pulling it. */
-          rung.pos = Math.max(rung.slot, rung.from - hauled);
-        });
+      const drawn = easeInQuad(Math.min(1, time / EXIT_TIME));
+
+      boughs.forEach((bough) => {
+        const tx = bough.exitFrom + (bough.exitTo - bough.exitFrom) * drawn;
+        const tvx = (tx - bough.tx) / dt;
+        bough.tax = (tvx - bough.tvx) / dt;
+        bough.tvx = tvx;
+        bough.tx = tx;
       });
-      if (time >= REEL_TIME) finish();
+
+      columns.forEach((column) => {
+        const anchors = column.anchors;
+        const count = anchors.length;
+        let midY = 0;
+        let midVy = 0;
+        let midAx = 0;
+        let midX = 0;
+        anchors.forEach((anchor) => {
+          anchorAt(anchor.bough, anchor);
+          midX += anchor.x;
+          midY += anchor.y;
+          midVy += anchor.vy;
+          /* The knot carries the tow's acceleration as well as the swing's. */
+          midAx += anchor.accX + anchor.bough.tax;
+        });
+        midX /= count;
+        midY /= count;
+        midVy /= count;
+        midAx /= count;
+        column.anchorX = midX;
+        column.anchorY = midY;
+
+        /* The cords, verbatim from the fall: hanging is hanging. */
+        const rungs = column.rungs;
+        const total = rungs.length;
+        for (let index = 0; index < total; index += 1) {
+          const rung = rungs[index];
+          rung.v += (GRAVITY - RUNG_DRAG * rung.v) * dt;
+        }
+        for (let index = 0; index < total; index += 1) {
+          const rung = rungs[index];
+          const aboveY = index === 0 ? midY : rungs[index - 1].pos;
+          const aboveV = index === 0 ? midVy : rungs[index - 1].v;
+          const stretch = rung.pos - aboveY - rung.span;
+          rung.taut = stretch > 0;
+          if (!rung.taut) continue;
+          const tension = Math.max(0, CORD_K * stretch + rung.damping * (rung.v - aboveV));
+          rung.v -= tension * dt;
+          if (index > 0) rungs[index - 1].v += tension * dt;
+        }
+        for (let index = 0; index < total; index += 1) {
+          rungs[index].pos += rungs[index].v * dt;
+        }
+
+        const swayA =
+          -SWAY_EXIT_W2 * column.sway - SWAY_EXIT_C * column.swayV - midAx / column.length;
+        column.swayV += swayA * dt;
+        let sway = column.sway + column.swayV * dt;
+        if (sway > EXIT_MAX_SWAY) {
+          sway = EXIT_MAX_SWAY;
+          if (column.swayV > 0) column.swayV = 0;
+        } else if (sway < -EXIT_MAX_SWAY) {
+          sway = -EXIT_MAX_SWAY;
+          if (column.swayV < 0) column.swayV = 0;
+        }
+        column.sway = sway;
+      });
+
+      if (time >= EXIT_TIME) finish();
     },
   };
 }
