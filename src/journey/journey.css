@@ -8,9 +8,11 @@
  * tablets and phones rather than just scaling it down.
  * ------------------------------------------------------------------ */
 
+/* 800vh of travel over the timeline's 146s — the same pace per second the
+   1000vh track gave the old 164s cut; only the FAQ act's dead span went. */
 .journey {
   position: relative;
-  height: 1000vh;
+  height: 900vh;
 }
 
 .journey__stage {
@@ -659,6 +661,8 @@
   background: var(--ink);
   border: 3.862px solid var(--rose);
   border-radius: 21.643px 0 21.643px 0;
+  /* Scrubbed through y/opacity the whole act — keep them composited. */
+  will-change: transform, opacity;
 }
 
 .day__title {

@@ -33,8 +33,8 @@
 
 const DEG = Math.PI / 180;
 
-/** Real seconds per simulation second. At 1 the act was over before it read. */
-export const TIME_SCALE = 1.9;
+/** Real seconds per simulation second — the act's tape speed, fall and reel. */
+export const TIME_SCALE = 0.95;
 
 /** Fixed solver step. The cords are stiff, so this sits well inside them. */
 export const SIM_STEP = 1 / 600;
@@ -353,19 +353,29 @@ export function createLadderSim(world) {
 /* ---- pulling away --------------------------------------------------- */
 
 /*
- * Scrolling back up strikes the set. Each bough is dragged out through its
- * own side of the frame — the left bough leaves stage left, the right one
- * stage right — and the ladder, still tied on, is towed along with it.
- * Nothing about the tow is written onto the rungs: the bough moves, the
- * knots move with it, and the cords pass that on exactly the way they did
- * during the fall, so the ladder trails its bough, leans against the drag
- * and keeps swinging on its own physics until the whole rig is off screen.
+ * Scrolling back up strikes the set. On a wide stage each bough is dragged
+ * out through its own side of the frame — the left bough leaves stage left,
+ * the right one stage right — and the ladder, still tied on, is towed along
+ * with it. On a tablet or a phone (`world.towUp`) the rig is hauled straight
+ * back up through the top instead: the boughs climb out and the ladder is
+ * rolled up after them, which is the drop played in reverse rather than a
+ * sideways strike there is no room for. Nothing about either tow is written
+ * onto the rungs: the bough moves, the knots move with it, and the cords
+ * pass that on exactly the way they did during the fall, so the ladder
+ * trails its bough on its own physics until the whole rig is off screen.
  */
 
 /** Sim seconds for a bough to clear the frame. Ends at full speed — yanked. */
 const EXIT_TIME = 0.85;
 /** Clears the edge with room for the ladder trailing at full lean. */
 const EXIT_MARGIN = 90;
+/*
+ * The climb's own allowance. Hauled upward, the cords stretch under the
+ * load and the foot of the ladder trails well behind the rest-length pose —
+ * across a dozen cords the lag adds up — so the top exit clears by more
+ * than the sideways one needs.
+ */
+const EXIT_CLEARANCE = 260;
 /*
  * The tow's own pendulum. The fall's sway spring is far too stiff to show a
  * horizontal drag — the ladder would track its bough almost rigidly — so the
@@ -378,15 +388,29 @@ const EXIT_MAX_SWAY = 10 * DEG;
 const easeInQuad = (t) => t * t;
 
 export function createReelSim(world) {
-  const { boughs, columns, stageWidth } = world;
+  const { boughs, columns, stageWidth, towUp } = world;
+
+  /* Upward: high enough that the deepest-hanging ladder foot clears the top
+     of the frame, elastic lag included. */
+  const climb = towUp
+    ? columns.reduce(
+        (deep, column) => Math.max(deep, column.anchorRest.y + column.length),
+        0,
+      ) + EXIT_CLEARANCE
+    : 0;
 
   boughs.forEach((bough) => {
-    bough.exitFrom = bough.tx;
-    /* Out through its own edge: fully past the frame plus margin. */
-    bough.exitTo =
-      bough.dir > 0
-        ? -(bough.left + bough.width + EXIT_MARGIN)
-        : (stageWidth ?? bough.width * 2) - bough.left + EXIT_MARGIN;
+    if (towUp) {
+      bough.exitFrom = bough.ty;
+      bough.exitTo = -climb;
+    } else {
+      bough.exitFrom = bough.tx;
+      /* Out through its own edge: fully past the frame plus margin. */
+      bough.exitTo =
+        bough.dir > 0
+          ? -(bough.left + bough.width + EXIT_MARGIN)
+          : (stageWidth ?? bough.width * 2) - bough.left + EXIT_MARGIN;
+    }
     bough.tvx = 0;
     bough.tax = 0;
   });
@@ -415,11 +439,19 @@ export function createReelSim(world) {
       const drawn = easeInQuad(Math.min(1, time / EXIT_TIME));
 
       boughs.forEach((bough) => {
-        const tx = bough.exitFrom + (bough.exitTo - bough.exitFrom) * drawn;
-        const tvx = (tx - bough.tx) / dt;
-        bough.tax = (tvx - bough.tvx) / dt;
-        bough.tvx = tvx;
-        bough.tx = tx;
+        const at = bough.exitFrom + (bough.exitTo - bough.exitFrom) * drawn;
+        if (towUp) {
+          /* The climb feeds the cords through tvy — anchorAt carries it into
+             each knot's velocity — and shakes nothing sideways. */
+          bough.tvy = (at - bough.ty) / dt;
+          bough.ty = at;
+          bough.tax = 0;
+        } else {
+          const tvx = (at - bough.tx) / dt;
+          bough.tax = (tvx - bough.tvx) / dt;
+          bough.tvx = tvx;
+          bough.tx = at;
+        }
       });
 
       columns.forEach((column) => {

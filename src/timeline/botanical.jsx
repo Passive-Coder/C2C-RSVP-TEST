@@ -522,9 +522,6 @@ export function Plant() {
             <stop offset="0.82" stopColor="#f4ced8" />
             <stop offset="1" stopColor="#d77b98" />
           </radialGradient>
-          <filter id="petalDepth" x="-45%" y="-45%" width="190%" height="200%">
-            <feDropShadow dx="0" dy="1.25" stdDeviation="1.05" floodColor="#50142e" floodOpacity="0.34" />
-          </filter>
         </defs>
 
         <image

@@ -3,13 +3,14 @@ import { useEffect, useState } from 'react';
 /*
  * Every chapter lives inside one pinned stage, so the nav can't just jump to
  * an anchor — it has to scroll to the point in the journey where that chapter
- * is on screen. The fractions below are positions along the master timeline.
+ * is on screen. The fractions below are positions along the master timeline
+ * (146s total): about ≈36s, stats ≈90s, timeline ≈112s, FAQs ≈134s.
  */
 const links = [
-  { label: 'About', at: 0.22 },
-  { label: 'FAQs', at: 0.85 },
-  { label: 'Timeline', at: 0.68 },
-  { label: 'Stats', at: 0.55 },
+  { label: 'About', at: 0.25 },
+  { label: 'FAQs', at: 0.92 },
+  { label: 'Timeline', at: 0.76 },
+  { label: 'Stats', at: 0.62 },
 ];
 
 export default function Navbar() {
@@ -28,6 +29,10 @@ export default function Navbar() {
     const journey = document.querySelector('.journey');
     if (!journey) return;
 
+    /* A deliberate leap: the journey walls its scroll while the FAQ act is
+       mid-play, and those walls must not fight a nav jump. */
+    window.dispatchEvent(new Event('journey:leap'));
+
     const travel = journey.offsetHeight - window.innerHeight;
     window.scrollTo({ top: journey.offsetTop + travel * at, behavior: 'smooth' });
   };
@@ -40,6 +45,7 @@ export default function Navbar() {
           href="#top"
           onClick={(event) => {
             event.preventDefault();
+            window.dispatchEvent(new Event('journey:leap'));
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
         >

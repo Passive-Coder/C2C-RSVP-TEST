@@ -401,14 +401,17 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
       const bonsaiBloom = createBloomTimeline(q('.bonsai')[0], { moments: false });
       tl.add(bonsaiBloom.duration(22), 105);
 
+      /* Fade and rise only — no blur() in these: a filter tween on live text
+         repaints the card on every scrubbed frame, and this act already pays
+         for the bloom. */
       const days = q('.day');
-      gsap.set(days, { autoAlpha: 0, filter: 'blur(3px)', y: 26 });
+      gsap.set(days, { autoAlpha: 0, y: 26 });
       tl.to(q('.days'), { autoAlpha: 1, duration: 2 }, 106)
-        .to(days[0], { autoAlpha: 1, filter: 'blur(0px)', y: 0, duration: 2 }, 106.4)
-        .to(days[0], { autoAlpha: 0, filter: 'blur(3px)', y: -26, duration: 1.8 }, 112.5)
-        .to(days[1], { autoAlpha: 1, filter: 'blur(0px)', y: 0, duration: 1.8 }, 113.2)
-        .to(days[1], { autoAlpha: 0, filter: 'blur(3px)', y: -26, duration: 1.8 }, 119.5)
-        .to(days[2], { autoAlpha: 1, filter: 'blur(0px)', y: 0, duration: 1.8 }, 120.2)
+        .to(days[0], { autoAlpha: 1, y: 0, duration: 2 }, 106.4)
+        .to(days[0], { autoAlpha: 0, y: -26, duration: 1.8 }, 112.5)
+        .to(days[1], { autoAlpha: 1, y: 0, duration: 1.8 }, 113.2)
+        .to(days[1], { autoAlpha: 0, y: -26, duration: 1.8 }, 119.5)
+        .to(days[2], { autoAlpha: 1, y: 0, duration: 1.8 }, 120.2)
         .to(q('.days'), { autoAlpha: 0, duration: 3 }, 126);
 
       /*
@@ -421,9 +424,18 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
       tl.to(q('.bonsai'), { xPercent: 135, autoAlpha: 0, duration: 5, ease: 'power2.in' }, 128);
 
       const FAQ_CUE = 131;
+      /* The act's doors, in timeline seconds. While the ladder is still
+         falling the scroll is walled at EXIT, short of the footer's approach;
+         while it is being towed away, at ENTRY, just below the cue. Nobody
+         leaves the act in either direction before it has finished playing. */
+      const FAQ_EXIT = 141;
+      const FAQ_ENTRY = 130;
 
-      /* L — the boughs keep shedding; the fall carries on into the footer. */
-      tl.to({}, { duration: 6 }, 158);
+      /* L — the FAQ act's scroll span: the shed reaches full by the exit
+         wall, then a short run carries the fall into the footer. Kept tight —
+         the walls above already guarantee the act is watched, so the span no
+         longer needs to buy time with scroll distance. */
+      tl.to({}, { duration: 13 }, 133);
 
       /* ---------------- petals, cued off overall progress ------------- */
 
@@ -469,6 +481,36 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
         }
       };
 
+      /*
+       * The act must be watched whole: while the fall or the tow is still
+       * playing, the scroll is walled at the section's doors and let go the
+       * moment the simulation settles. A nav jump is a deliberate leap rather
+       * than a scroll, so it stands the walls down — for a window long enough
+       * to carry the smooth scroll across the act and play its tow out, and
+       * re-armed sooner if the user takes the wheel back. Enforcement is an
+       * instant scroll: the page's own smooth behavior would turn the wall
+       * to rubber.
+       */
+      let leapUntil = 0;
+      const leap = () => {
+        leapUntil = performance.now() + 2000;
+      };
+      const grab = () => {
+        leapUntil = 0;
+      };
+
+      const gate = (self) => {
+        const busy = ladder.getBusy();
+        if (!busy) return;
+        if (performance.now() < leapUntil) return;
+        const perSecond = (self.end - self.start) / tl.duration();
+        const wall = self.start + (busy === 'fall' ? FAQ_EXIT : FAQ_ENTRY) * perSecond;
+        const at = self.scroll();
+        if (busy === 'fall' ? at > wall : at < wall) {
+          window.scrollTo({ top: wall, behavior: 'instant' });
+        }
+      };
+
       const trigger = ScrollTrigger.create({
         animation: tl,
         trigger: root,
@@ -484,12 +526,22 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
         onUpdate: (self) => {
           petalCue(self.progress);
           ladderCue(self.progress);
+          gate(self);
         },
         onRefresh: (self) => {
           petalCue(self.progress);
           ladderCue(self.progress);
         },
       });
+
+      /* The trigger stops reporting once its progress pegs at an end, so the
+         walls also stand on the raw scroll — added after the trigger, which
+         keeps them downstream of the cue that starts the act. */
+      const guard = () => gate(trigger);
+      window.addEventListener('scroll', guard, { passive: true });
+      window.addEventListener('journey:leap', leap);
+      window.addEventListener('wheel', grab, { passive: true });
+      window.addEventListener('touchstart', grab, { passive: true });
 
       petalCue(0);
       /* Cue again once mounting has fully settled, so the opening state cannot
@@ -501,7 +553,7 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
          measure now, once every image has landed, and once more on load. */
       const refresh = () => ScrollTrigger.refresh();
       refresh();
-      if (import.meta.env.DEV) window.__tl = { tl, trigger, petalCue, ladderCue, gsap };
+      if (import.meta.env.DEV) window.__tl = { tl, trigger, petalCue, ladderCue, ladder, gsap };
 
       const images = Array.from(stage.querySelectorAll('img'));
       const pending = images.filter((img) => !img.complete);
@@ -518,6 +570,10 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
 
       return () => {
         window.removeEventListener('load', refresh);
+        window.removeEventListener('scroll', guard);
+        window.removeEventListener('journey:leap', leap);
+        window.removeEventListener('wheel', grab);
+        window.removeEventListener('touchstart', grab);
         pending.forEach((img) => img.removeEventListener('load', refresh));
         trigger.kill();
       };

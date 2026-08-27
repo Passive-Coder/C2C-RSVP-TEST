@@ -36,8 +36,10 @@
   will-change: transform, opacity;
 }
 
+/* No SVG filter here: a feDropShadow on a head whose petals morph every
+   scrubbed frame re-rasterizes sixteen filter regions per frame, and at this
+   render size the shadow it bought was under a pixel. */
 .flower-head {
-  filter: url(#petalDepth);
   transform-box: view-box;
   transform-origin: 0 0;
   will-change: transform, opacity;
@@ -236,11 +238,9 @@
   vector-effect: non-scaling-stroke;
 }
 
-.stamen-anther,
-.pistil-tip,
-.nectar-gland {
-  filter: drop-shadow(0 0 0.7px rgba(255, 218, 105, 0.72));
-}
+/* These used to carry a 0.7px drop-shadow glow each — sub-pixel at the
+   plant's on-screen scale, but two hundred odd filtered elements repainted
+   on every scrubbed frame. The bright fills carry the glint on their own. */
 
 .nectar-gland {
   fill: #efbd4a;

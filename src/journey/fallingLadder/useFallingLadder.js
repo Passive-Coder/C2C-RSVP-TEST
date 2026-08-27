@@ -58,6 +58,12 @@ export function useFallingLadder(stageRef) {
   const cue = useRef(null);
   const setActive = useCallback((on) => cue.current?.(on), []);
 
+  /* Same arrangement for asking: 'fall' or 'reel' while the act is still
+     playing, null once it has settled or been struck. The journey holds its
+     scroll at the act's doors on this. */
+  const probe = useRef(null);
+  const getBusy = useCallback(() => probe.current?.() ?? null, []);
+
   useLayoutEffect(() => {
     const stage = stageRef.current;
     if (!stage) return undefined;
@@ -218,8 +224,16 @@ export function useFallingLadder(stageRef) {
       });
 
       if (!columns.length) return null;
-      /* The pull-away needs to know where the frame's edges are. */
-      return { boughs, columns, stageWidth: stageRect.width };
+      /* The pull-away needs to know where the frame's edges are, and which
+         way to leave: tablets and phones roll the rig back up through the
+         top, wider stages tow it out through the sides. Same breakpoint the
+         CSS re-blocks the tablet composition at. */
+      return {
+        boughs,
+        columns,
+        stageWidth: stageRect.width,
+        towUp: window.matchMedia('(max-width: 1100px)').matches,
+      };
     };
 
     /* ---------------- drawing ---------------- */
@@ -381,6 +395,10 @@ export function useFallingLadder(stageRef) {
       if (!startFall()) wanted = false;
     };
 
+    /* `running` is true exactly while the ticker is stepping a simulation, so
+       it is the whole of "still playing" for both directions. */
+    probe.current = () => (running ? mode : null);
+
     idle();
 
     /*
@@ -408,9 +426,10 @@ export function useFallingLadder(stageRef) {
       observer.disconnect();
       window.removeEventListener('resize', relayout);
       cue.current = null;
+      probe.current = null;
       clearStyles();
     };
   }, [stageRef]);
 
-  return useMemo(() => ({ setActive }), [setActive]);
+  return useMemo(() => ({ setActive, getBusy }), [setActive, getBusy]);
 }

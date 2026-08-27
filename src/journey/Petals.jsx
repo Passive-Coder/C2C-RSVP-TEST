@@ -45,11 +45,13 @@ const SLUMP = 0.14;
 
 /*
  * The route petals take through the timeline act, in fractions of the frame:
- * down the left edge, along the floor, and up the right. On a tall narrow
- * screen there is no room for the descent, so it flattens into a single pass
- * across the middle. Sampled into a polyline once per resize, with arc length
- * carried along it so petals travel at an even speed rather than sprinting
- * through the straights.
+ * down the left edge, along the floor, and up the right. The phone layout —
+ * and any screen too tall for the descent — takes the flat single pass across
+ * the middle instead; the route always follows the layout, so the phone
+ * arrangement (bonsai up top, day card along the bottom) is never crossed by
+ * the wide route's floor run. Sampled into a polyline once per resize, with
+ * arc length carried along it so petals travel at an even speed rather than
+ * sprinting through the straights.
  */
 /* Both routes begin and end well outside the frame, so neither the mouth nor
    the tail of the stream is ever on screen. */
@@ -133,10 +135,12 @@ const Petals = forwardRef(function Petals(
 
     /* The timeline route, resampled at even arc length for the current frame. */
     let route = [];
+    let routeCum = [];
     let routeLength = 0;
 
     const buildRoute = () => {
-      const source = h > w * 1.15 ? PATH_NARROW : PATH_WIDE;
+      /* The same breakpoint the CSS re-blocks the phone layout at. */
+      const source = w <= 760 || h > w * 1.15 ? PATH_NARROW : PATH_WIDE;
       /* Catmull-Rom through the control points, so the corners are curves. */
       const pts = [];
       for (let i = 0; i < source.length - 1; i += 1) {
@@ -161,33 +165,41 @@ const Petals = forwardRef(function Petals(
       pts.push([source[source.length - 1][0] * w, source[source.length - 1][1] * h]);
 
       route = pts;
-      routeLength = 0;
+      /* Cumulative arc length per point, so a lookup is a bisect rather than
+         a walk — this runs for every routed petal on every frame. */
+      routeCum = new Float64Array(route.length);
       for (let i = 1; i < route.length; i += 1) {
-        routeLength += Math.hypot(route[i][0] - route[i - 1][0], route[i][1] - route[i - 1][1]);
+        routeCum[i] =
+          routeCum[i - 1] +
+          Math.hypot(route[i][0] - route[i - 1][0], route[i][1] - route[i - 1][1]);
       }
+      routeLength = routeCum[route.length - 1] || 0;
     };
 
     /** Point and heading a fraction `t` along the route. */
     const alongRoute = (t) => {
       const target = Math.max(0, Math.min(1, t)) * routeLength;
-      let walked = 0;
-      for (let i = 1; i < route.length; i += 1) {
-        const a = route[i - 1];
-        const b = route[i];
-        const seg = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
-        if (walked + seg >= target) {
-          const f = (target - walked) / seg;
-          return {
-            x: a[0] + (b[0] - a[0]) * f,
-            y: a[1] + (b[1] - a[1]) * f,
-            dx: (b[0] - a[0]) / seg,
-            dy: (b[1] - a[1]) / seg,
-          };
-        }
-        walked += seg;
+      let lo = 1;
+      let hi = route.length - 1;
+      while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (routeCum[mid] < target) lo = mid + 1;
+        else hi = mid;
       }
-      const last = route[route.length - 1] || [0, 0];
-      return { x: last[0], y: last[1], dx: 1, dy: 0 };
+      const a = route[lo - 1];
+      const b = route[lo];
+      if (!a || !b) {
+        const last = route[route.length - 1] || [0, 0];
+        return { x: last[0], y: last[1], dx: 1, dy: 0 };
+      }
+      const seg = routeCum[lo] - routeCum[lo - 1] || 1;
+      const f = (target - routeCum[lo - 1]) / seg;
+      return {
+        x: a[0] + (b[0] - a[0]) * f,
+        y: a[1] + (b[1] - a[1]) * f,
+        dx: (b[0] - a[0]) / seg,
+        dy: (b[1] - a[1]) / seg,
+      };
     };
 
     /*
