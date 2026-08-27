@@ -214,26 +214,29 @@ export function Emblem() {
   );
 }
 
+/* The deck, in fan order — which is chapter order: the 10 fronts
+   Code2Create, the ace ACM-VIT, the king ACM, the queen ACM-W and the
+   jack VIT. Each SVG wraps the supplied club-suit scan, background
+   removed and corners cut to the card's own radius. */
+const FACES = [
+  '/assets/svg/card-10.svg',
+  '/assets/svg/card-ace.svg',
+  '/assets/svg/card-king.svg',
+  '/assets/svg/card-queen.svg',
+  '/assets/svg/card-jack.svg',
+];
+
 export default function Cards() {
   return (
     <div className="cards" aria-hidden="true">
-      {FAN.map((slot, index) => {
-        const rank = index + 1;
-        return (
-          <div className="card" key={rank} data-card={index}>
-            <div className="card__wedge" style={{ background: WEDGE_FILLS[index] }} />
-            <div className="card__face">
-              <span className="card__rank card__rank--tl">{rank}</span>
-              <div className="card__blooms" data-count={rank}>
-                {Array.from({ length: rank }, (_, i) => (
-                  <img key={i} src="/assets/svg/sakura.svg" alt="" />
-                ))}
-              </div>
-              <span className="card__rank card__rank--br">{rank}</span>
-            </div>
+      {FAN.map((slot, index) => (
+        <div className="card" key={index} data-card={index}>
+          <div className="card__wedge" style={{ background: WEDGE_FILLS[index] }} />
+          <div className="card__face">
+            <img className="card__scan" src={FACES[index]} alt="" />
           </div>
-        );
-      })}
+        </div>
+      ))}
     </div>
   );
 }

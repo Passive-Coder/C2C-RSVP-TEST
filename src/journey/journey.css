@@ -275,51 +275,14 @@
 .card__face {
   position: absolute;
   inset: 0;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  padding: 5.5% 7%;
 }
 
-.card__rank {
-  font-family: var(--font-numeral);
-  font-weight: 700;
-  font-size: clamp(13px, 2.1vw, 32px);
-  line-height: 1;
-  color: var(--ink-card);
-}
-
-.card__rank--tl {
-  justify-self: start;
-}
-
-.card__rank--br {
-  justify-self: end;
-}
-
-.card__blooms {
-  display: grid;
-  place-content: center;
-  gap: 6%;
-  padding-block: 5%;
-}
-
-.card__blooms img {
-  width: clamp(10px, 1.9vw, 30px);
-  height: auto;
-}
-
-.card__blooms[data-count='1'] img {
-  width: clamp(30px, 5.4vw, 84px);
-}
-
-.card__blooms[data-count='4'],
-.card__blooms[data-count='5'] {
-  grid-template-columns: repeat(2, 1fr);
-}
-
-.card__blooms[data-count='5'] img:last-child {
-  grid-column: 1 / -1;
-  justify-self: center;
+/* The club-suit scan fills the card exactly — it is pre-cropped to the
+   card box's own ratio, with its rounded corners cut to transparency. */
+.card__scan {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 /* ------------------------------------------------------------------ *
@@ -1034,10 +997,6 @@
   .chapter__body {
     font-size: clamp(9px, 2.5vw, 11px);
     line-height: 1.32;
-  }
-
-  .card__rank {
-    font-size: clamp(11px, 3.4vw, 18px);
   }
 
   .lantern__label {

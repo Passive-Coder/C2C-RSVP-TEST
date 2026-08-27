@@ -36,7 +36,7 @@ const DRAG = 0.986;
 const BUCKETS = 190;
 
 /* Roughly how long a hollow takes to fill back in. */
-const REFILL_SECONDS = 3;
+const REFILL_SECONDS = 6;
 const REFILL_PER_FRAME = 7;
 
 /* How fast the pile slumps sideways. Higher settles quicker; too high and the
@@ -123,11 +123,24 @@ const Petals = forwardRef(function Petals(
   ref,
 ) {
   const canvasRef = useRef(null);
-  const cfg = useRef({ mode: 'none', intensity: 0, focus: { x: 0.5, y: 0.5 }, wind: 0 });
+  const cfg = useRef({
+    mode: 'none',
+    intensity: 0,
+    focus: { x: 0.5, y: 0.5 },
+    wind: 0,
+    purge: new Set(),
+  });
 
   useImperativeHandle(ref, () => ({
     setMode(next) {
       cfg.current.mode = next;
+    },
+    /* While a kind is purged, petals born to it die fast instead of taking
+       their natural fall — the canvas paints over every act, so this is how
+       the timeline's routed river is kept off the FAQ act entirely. */
+    setPurge(kind, on) {
+      if (on) cfg.current.purge.add(kind);
+      else cfg.current.purge.delete(kind);
     },
     setIntensity(value) {
       cfg.current.intensity = Math.max(0, Math.min(1, value));
@@ -632,6 +645,7 @@ const Petals = forwardRef(function Petals(
         mode === 'none' ? 0 : Math.min(Math.round(MAX * intensity), Math.round(MAX * cap));
       let live = 0;
 
+      const purge = cfg.current.purge;
       for (const p of petals) {
         if (p.dead) continue;
         if (!p.refill) live += 1;
@@ -647,11 +661,23 @@ const Petals = forwardRef(function Petals(
           }
         }
 
+        /* A purged kind dies in a couple of tenths, mid-motion, wherever it
+           is — the fade below keeps the vanishing from reading as a pop. */
+        if (purge.has(p.kind) && !p.refill) {
+          p.alpha *= 0.74;
+          if (p.alpha < 0.05) {
+            p.dead = true;
+            continue;
+          }
+        }
+
         if (mode === 'path' && p.kind === 'path' && !p.refill) {
           /* Carried along the route rather than falling. The drift either side
              of the line breathes, so the stream reads as loose petals on a
              current and not as beads on a wire. */
-          if (p.alpha < p.fade) p.alpha = Math.min(p.fade, p.alpha + 0.035);
+          if (!purge.has('path') && p.alpha < p.fade) {
+            p.alpha = Math.min(p.fade, p.alpha + 0.035);
+          }
           p.t += p.pace * dtScale;
           if (p.t > 1.03) {
             p.dead = true;

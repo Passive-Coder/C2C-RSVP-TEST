@@ -26,7 +26,9 @@ gsap.registerPlugin(useGSAP, ScrollTrigger);
 /* Each About chapter is fronted by one of the five cards. */
 const CHAPTERS = [
   /* Cards are dealt in fan order: each chapter lifts the next card from the
-     left, so the hand empties leftmost to rightmost. */
+     left, so the hand empties leftmost to rightmost — the 10 for C2C, the
+     ace for ACM-VIT, the king for ACM, the queen for ACM-W, the jack for
+     VIT. */
   {
     title: 'Code2Create',
     wordmark: true,
@@ -40,7 +42,7 @@ const CHAPTERS = [
     ],
   },
   {
-    title: 'ACM',
+    title: 'ACM-VIT',
     card: 1,
     body: [
       'As the official student chapter of the Association for Computing Machinery at VIT Vellore, we’ve been pushing boundaries and challenging conventions since 2009. From research and development to open-source contributions and unorthodox events, we turn ideas into real-world impact.',
@@ -48,8 +50,16 @@ const CHAPTERS = [
     ],
   },
   {
-    title: 'ACM-W',
+    title: 'ACM',
     card: 2,
+    body: [
+      'The Association for Computing Machinery (ACM) is the world’s largest educational and scientific computing society. Since its inception in 1947, ACM has united educators, researchers, and professionals to advance computing as a science and a profession.',
+      'It promotes the highest standards of technical excellence, fosters lifelong learning, and supports career development through a global network of conferences, publications, and professional communities. With a strong commitment to innovation and leadership, ACM continues to shape the future of computing worldwide.',
+    ],
+  },
+  {
+    title: 'ACM-W',
+    card: 3,
     body: [
       'ACM-W was created with a simple yet profound mission: to create equal access to opportunities in technology and ensure that everyone, regardless of gender, has the chance to grow in STEM. We believe talent and potential aren’t defined by barriers, but by the right support, mentorship, and exposure.',
       'As a sister chapter of ACM-VIT, we are a part of a community that values contributions across all computing fields. Through our InspiHER podcast series, blogs, and community stalls, we’ve carved out a space where stories and perspectives are shared and voices in tech are amplified.',
@@ -58,7 +68,7 @@ const CHAPTERS = [
   },
   {
     title: 'VIT',
-    card: 3,
+    card: 4,
     body: [
       'Founded in 1984, VIT Vellore is one of India’s top engineering institutions, renowned for academic excellence, global outlook, and a strong emphasis on research and innovation. With students from across India and around the world, VIT offers a diverse and inclusive learning environment.',
       'The university provides world-class infrastructure, experienced faculty, and a wide range of industry-connected programs designed to prepare students for professional success. From pioneering research to impactful engineering projects, VIT empowers students to make meaningful contributions across every field.',
@@ -325,9 +335,11 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
         .to(q('.card__face'), { autoAlpha: 1, duration: 2.4, stagger: 0.2 }, 26.5)
         ;
 
-      /* D/E/F — each chapter lifts its card out of the fan, holds, returns. */
+      /* D/E/F — each chapter lifts its card out of the fan, holds, returns.
+         Five chapters now, so the beat is 7s rather than 9s — the last
+         card is back in the hand at 68.6, before the drop at 70. */
       CHAPTERS.forEach((chapter, index) => {
-        const at = 32 + index * 9;
+        const at = 32 + index * 7;
         const card = cards[chapter.card];
 
         tl.to(
@@ -338,13 +350,13 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
             width: () => `${layout().feature.width}%`,
             rotation: () => layout().feature.rotate,
             zIndex: 40,
-            duration: 2.4,
+            duration: 2.2,
             ease: 'power3.out',
           },
           at,
         )
-          .to(panels[index], { autoAlpha: 1, xPercent: 0, duration: 2, ease: 'power2.out' }, at + 0.8)
-          .to(panels[index], { autoAlpha: 0, xPercent: -6, duration: 1.6, ease: 'power2.in' }, at + 7)
+          .to(panels[index], { autoAlpha: 1, xPercent: 0, duration: 1.8, ease: 'power2.out' }, at + 0.7)
+          .to(panels[index], { autoAlpha: 0, xPercent: -6, duration: 1.4, ease: 'power2.in' }, at + 6.1)
           .to(
             card,
             {
@@ -353,10 +365,10 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
               width: () => `${layout().fanWidth}%`,
               rotation: () => layout().fan[chapter.card].rotate,
               zIndex: 10 + chapter.card,
-              duration: 2.4,
+              duration: 2.2,
               ease: 'power3.inOut',
             },
-            at + 7.4,
+            at + 6.4,
           );
       });
 
@@ -509,8 +521,10 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
          transforms, so the measure is exact even taken mid-fall. */
       const faqShell = q('.faq-shell')[0];
       const faqBranches = q('.branches')[0];
+      /* 72px of clear air under the last rung, so the ladder's tail floats
+         free of the section edge instead of sitting on it. */
       const faqOverflow = () =>
-        Math.max(0, faqShell.offsetTop + faqShell.offsetHeight + 28 - stage.clientHeight);
+        Math.max(0, faqShell.offsetTop + faqShell.offsetHeight + 72 - stage.clientHeight);
       tl.to(
         [faqBranches, faqShell],
         { y: () => -faqOverflow(), duration: 11, ease: 'none' },
@@ -532,6 +546,12 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
         if (!api) return;
         const at = progress * tl.duration();
         const ramp = (from, to) => gsap.utils.clamp(0, 1, (at - from) / (to - from));
+
+        /* The petal canvas paints over the whole pinned stage, so the
+           timeline's routed river cannot be layered behind the FAQ ladder —
+           instead it is retired outright the moment the FAQ act owns the
+           stage, and rebuilt when the scroll returns to the timeline. */
+        api.setPurge('path', at >= 130);
 
         if (at < 15) {
           /* Strictly the hero: shed from the canopy itself, and sparsely. */
