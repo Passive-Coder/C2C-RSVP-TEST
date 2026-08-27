@@ -1,15 +1,11 @@
 import './footer.css';
 
-/* Link groups exactly as they are laid out in Figma node 1681:1322. */
+/* Link groups from Figma node 1681:1322, minus the Guests and Timeline
+   columns, which this edition does not carry. */
 const groups = [
   { title: 'About', items: ['c2c', 'acm'] },
-  { title: 'Guests', items: ['DJ ISAAC', 'H MEHRZAAD', 'Meenakshi'] },
   {
     title: 'Our Products',
-    items: ['ACMONE', 'CLI-RPG', 'EXAMCOOKER', 'CLITOP', 'LOCALHOST', 'OS', 'UNIPOOL'],
-  },
-  {
-    title: 'Timeline',
     items: ['ACMONE', 'CLI-RPG', 'EXAMCOOKER', 'CLITOP', 'LOCALHOST', 'OS', 'UNIPOOL'],
   },
   { title: 'Sponsors', items: ['about w', 'events'] },

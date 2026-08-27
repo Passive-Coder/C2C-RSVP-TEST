@@ -8,12 +8,12 @@
  * tablets and phones rather than just scaling it down.
  * ------------------------------------------------------------------ */
 
-/* 950vh of travel over the timeline's 146s — slower than the original cut,
-   but a notch freer than the 1150vh it briefly was: the journey should
-   glide, not resist. */
+/* ~1282vh of travel over the timeline's 197s — the same glide-not-resist
+   pace as the 146s/1050vh cut; the added length is the schedule act
+   running at three times its old scroll span. */
 .journey {
   position: relative;
-  height: 1050vh;
+  height: 1382vh;
 }
 
 .journey__stage {
@@ -258,7 +258,7 @@
 
 .card {
   position: absolute;
-  aspect-ratio: 249.79 / 355.62;
+  aspect-ratio: 560 / 862;
   background: linear-gradient(180deg, var(--card-from) 0%, var(--card-to) 100%);
   box-shadow: -18px 0 22px rgba(0, 0, 0, 0.32);
   transform-origin: 50% 50%;

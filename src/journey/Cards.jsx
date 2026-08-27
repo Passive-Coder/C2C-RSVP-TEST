@@ -17,7 +17,10 @@ export const LOGO_BOX = { w: 150, h: 163.825 };
  * are that band's height and top offset, as fractions of the card — the wedge
  * polygons are mapped through them so they land on the mark exactly.
  */
-const CARD_ASPECT = 355.62 / 249.79;
+/* The box follows the supplied deck's own proportions (the scans ship at
+   560×862, cropped at their gold hairline), so the faces fill it with no
+   felt beyond the border and under 2% stretch. */
+const CARD_ASPECT = 862 / 560;
 const LOGO_ASPECT = LOGO_BOX.h / LOGO_BOX.w;
 export const LOGO_BAND = {
   scale: LOGO_ASPECT / CARD_ASPECT,
@@ -152,7 +155,7 @@ export const FAN = [
   { left: 59.0, top: 63.0, rotate: 16 },
 ];
 
-export const CARD_RATIO = 249.79 / 355.62; // w / h
+export const CARD_RATIO = 560 / 862; // w / h — the deck's hairline ratio
 
 /* A phone has no room for a card beside a column of text, so the hand sits
    lower and the featured card moves above the copy instead of next to it. */
