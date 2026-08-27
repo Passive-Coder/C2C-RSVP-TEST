@@ -522,14 +522,14 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
         transformOrigin: '50% 100%',
       });
       tl.to(rosette, { autoAlpha: 0.85, duration: 2.5 }, 105)
-        .to(rosette, { rotation: 36, duration: 72, ease: 'none' }, 105)
-        .to(rosette, { autoAlpha: 0, duration: 2.6 }, 177.4);
+        .to(rosette, { rotation: 36, duration: 124, ease: 'none' }, 105)
+        .to(rosette, { autoAlpha: 0, duration: 2.6 }, 229.4);
 
       const petalShown = rosettePetals.map(() => false);
       const rosetteCue = (progress) => {
         const at = progress * tl.duration();
         rosettePetals.forEach((petal, index) => {
-          const wanted = at >= 108 + index * 13;
+          const wanted = at >= 108 + index * 22;
           if (wanted === petalShown[index]) return;
           petalShown[index] = wanted;
           gsap.to(
@@ -556,11 +556,11 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
       };
 
       /* Scoped to the bonsai so it does not also grab the branch flowers.
-         The timeline act runs at three times its old scroll span (104–182),
-         so the bloom stretches across most of it, done by 165 — well before
-         the bonsai starts to leave at 176.5. */
+         The timeline act runs at five times its old scroll span (104–234),
+         so the bloom stretches across most of it, done by 205 — well before
+         the bonsai starts to leave at 228.5. */
       const bonsaiBloom = createBloomTimeline(q('.bonsai')[0], { moments: false });
-      tl.add(bonsaiBloom.duration(60), 105);
+      tl.add(bonsaiBloom.duration(100), 105);
 
       /* Fade and rise only — no blur() in these: a filter tween on live text
          repaints the card on every scrubbed frame, and this act already pays
@@ -569,7 +569,7 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
       const days = q('.day');
       gsap.set(days, { autoAlpha: 0, y: 26 });
       tl.to(q('.days'), { autoAlpha: 1, duration: 2 }, 106);
-      const DAY_SLOT = 60 / days.length;
+      const DAY_SLOT = 100 / days.length;
       days.forEach((day, index) => {
         const at = 106 + index * DAY_SLOT;
         tl.to(day, { autoAlpha: 1, y: 0, duration: DAY_SLOT * 0.45 }, at + 0.35);
@@ -577,7 +577,7 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
           tl.to(day, { autoAlpha: 0, y: -26, duration: DAY_SLOT * 0.5 }, at + DAY_SLOT);
         }
       });
-      tl.to(q('.days'), { autoAlpha: 0, duration: 3 }, 170);
+      tl.to(q('.days'), { autoAlpha: 0, duration: 3 }, 224);
 
       /*
        * J/K — the bonsai leaves, and the FAQ act takes over. The boughs being
@@ -586,24 +586,24 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
        * timeline's only job is to say when. Scrolling back up past the cue
        * reels the ladder in again.
        *
-       * The bonsai is fully out at 180.5 — before the reel's door at 181 —
+       * The bonsai is fully out at 232.5 — before the reel's door at 233 —
        * so while the rig is being hauled off, the stage behind it is bare:
        * no act re-enters until the reel has finished and the door opens.
        */
-      tl.to(q('.bonsai'), { xPercent: 135, autoAlpha: 0, duration: 4, ease: 'power2.in' }, 176.5);
+      tl.to(q('.bonsai'), { xPercent: 135, autoAlpha: 0, duration: 4, ease: 'power2.in' }, 228.5);
 
-      const FAQ_CUE = 182;
+      const FAQ_CUE = 234;
       /* The reel's door, in timeline seconds: while the ladder is being
          hauled back in, the scroll holds here, just below the cue. The
-         bonsai act's furniture is gone by 180.5, so the stage behind the
+         bonsai act's furniture is gone by 232.5, so the stage behind the
          reel is bare and nothing else can appear until the rig has left.
          Forward is never walled — scrolling on toward the footer mid-fall
          is free, and the fall simply plays out as it goes. */
-      const FAQ_ENTRY = 181;
+      const FAQ_ENTRY = 233;
 
-      /* L — the FAQ act's scroll span: the shed reaches full at 192, then a
+      /* L — the FAQ act's scroll span: the shed reaches full at 244, then a
          short run carries the fall into the footer. */
-      tl.to({}, { duration: 13 }, 184);
+      tl.to({}, { duration: 13 }, 236);
 
       /* M — the camera tilt. On layouts where the ladder is taller than the
          frame — a phone's single column, a short tablet — the whole act pans
@@ -621,7 +621,7 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
       tl.to(
         [faqBranches, faqShell],
         { y: () => -faqOverflow(), duration: 11, ease: 'none' },
-        184.5,
+        236.5,
       );
 
       /* ---------------- petals, cued off overall progress ------------- */
@@ -644,7 +644,7 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
            timeline's routed river cannot be layered behind the FAQ ladder —
            instead it is retired outright the moment the FAQ act owns the
            stage, and rebuilt when the scroll returns to the timeline. */
-        api.setPurge('path', at >= 181);
+        api.setPurge('path', at >= 233);
 
         if (at < 15) {
           /* Strictly the hero: shed from the canopy itself, and sparsely. */
@@ -657,18 +657,18 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
           api.setMode('drift');
           api.setWind(3.4);
           api.setIntensity(0.08 * ramp(71, 77) * (1 - ramp(96, 103)));
-        } else if (at >= 103 && at < 181) {
+        } else if (at >= 103 && at < 233) {
           /* Carried slowly along the act's own route — down the left, across
              the floor, up the right — rather than milling about the middle. */
           api.setMode('path');
           api.setWind(0);
           api.setIntensity(ramp(103, 108));
-        } else if (at >= 185) {
+        } else if (at >= 237) {
           /* Shed by the boughs, and still falling as the footer takes over —
              a light fall, so the questions stay the point of the act. */
           api.setMode('drift');
           api.setWind(0.5);
-          api.setIntensity(0.085 * ramp(185, 192));
+          api.setIntensity(0.085 * ramp(237, 244));
         } else {
           /* Between acts. Handing the mode to 'drift' marks any routed
              petals as strangers, which die fast — a quick scroll into the

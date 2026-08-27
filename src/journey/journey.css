@@ -8,12 +8,12 @@
  * tablets and phones rather than just scaling it down.
  * ------------------------------------------------------------------ */
 
-/* ~1282vh of travel over the timeline's 197s — the same glide-not-resist
+/* ~1620vh of travel over the timeline's 249s — the same glide-not-resist
    pace as the 146s/1050vh cut; the added length is the schedule act
-   running at three times its old scroll span. */
+   running at five times its old scroll span. */
 .journey {
   position: relative;
-  height: 1382vh;
+  height: 1720vh;
 }
 
 .journey__stage {

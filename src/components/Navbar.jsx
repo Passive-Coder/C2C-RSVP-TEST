@@ -4,13 +4,13 @@ import { useEffect, useState } from 'react';
  * Every chapter lives inside one pinned stage, so the nav can't just jump to
  * an anchor — it has to scroll to the point in the journey where that chapter
  * is on screen. The fractions below are positions along the master timeline
- * (197s total): about ≈35s, stats ≈91s, timeline ≈112s, FAQs ≈185s.
+ * (249s total): about ≈35s, stats ≈90s, timeline ≈112s, FAQs ≈237s.
  */
 const links = [
-  { label: 'About', at: 0.18 },
-  { label: 'FAQs', at: 0.94 },
-  { label: 'Timeline', at: 0.57 },
-  { label: 'Stats', at: 0.46 },
+  { label: 'About', at: 0.14 },
+  { label: 'FAQs', at: 0.95 },
+  { label: 'Timeline', at: 0.45 },
+  { label: 'Stats', at: 0.36 },
 ];
 
 /*
