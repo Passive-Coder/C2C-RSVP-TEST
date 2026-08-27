@@ -783,10 +783,16 @@
   filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.55));
 }
 
-/* The ghost bough: an invisible box the right-hand ladder hangs from,
-   raised above the frame so its knots never show — the ropes just run off
-   the top of the stage. Flattened on purpose: its height only places the
-   knots, and a plate-shaped box would push them back on screen. */
+/* One plate serves both sides; the supplied pair were the same bitmap, one
+   of them simply mirrored. */
+.bough--right img {
+  transform: scaleX(-1);
+}
+
+/* The phone layout's ghost bough: an invisible box parked past the frame's
+   edge, keeping the simulation's pair intact while the single branch
+   carries every rope. Flattened — its height only places its (unused)
+   knots. */
 .bough--ghost {
   aspect-ratio: 1827 / 220;
 }

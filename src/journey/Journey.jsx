@@ -289,14 +289,19 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
         );
       });
 
-      /* E — each ray becomes a card, then the hand spreads out below. */
+      /* E — each ray becomes a card AT THE MARK'S OWN SIZE, and only then
+         flies down to the fan. The morph and the flight used to overlap,
+         and on a phone — where a fan card is far smaller than the mark —
+         the still-morphing triangles visibly shrank mid-unfold. Now the
+         triangle keeps the logo's scale until it is fully a card, and any
+         resize happens on the way to the hand. */
       cards.forEach((card, index) => {
         tl.to(
           card,
           {
             clipPath: CARD_CLIP,
             borderRadius: 16,
-            duration: 4,
+            duration: 3,
             ease: 'power2.inOut',
           },
           21.6 + index * 0.35,
@@ -309,15 +314,15 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
             rotation: () => layout().fan[index].rotate,
             xPercent: 0,
             yPercent: 0,
-            duration: 6,
+            duration: 5,
             ease: 'power2.inOut',
           },
-          23.4 + index * 0.35,
+          24.8 + index * 0.35,
         );
       });
 
-      tl.to(q('.card__wedge'), { autoAlpha: 0, duration: 2.6 }, 24)
-        .to(q('.card__face'), { autoAlpha: 1, duration: 2.4, stagger: 0.2 }, 26)
+      tl.to(q('.card__wedge'), { autoAlpha: 0, duration: 2.6 }, 25)
+        .to(q('.card__face'), { autoAlpha: 1, duration: 2.4, stagger: 0.2 }, 26.5)
         ;
 
       /* D/E/F — each chapter lifts its card out of the fan, holds, returns. */
