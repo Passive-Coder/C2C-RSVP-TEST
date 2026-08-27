@@ -270,7 +270,6 @@ ul {
     border: 2px solid var(--rose);
     border-radius: 20px 5px 20px 5px;
     backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
   }
 
   .navbar__links[data-open='false'] {
