@@ -618,11 +618,13 @@
  * ------------------------------------------------------------------ */
 
 /* The great blossom behind the day card: below the card (12) and the
-   bonsai (7), above the sky wash — an ornament, never a curtain. Centred
-   on the card, sized huge but bounded by the frame. */
+   bonsai (7), above the sky wash — an ornament, never a curtain. Anchored
+   to the day card's own centre — the card is `left: 12%; width: min(700px,
+   56%)`, so its midline is 12% plus half of that — and sized huge but
+   bounded by the frame. */
 .rosette {
   position: absolute;
-  left: 40%;
+  left: calc(12% + min(350px, 28%));
   top: 50%;
   z-index: 6;
   width: min(86vh, 52vw);
@@ -638,31 +640,51 @@
   overflow: visible;
 }
 
+.rosette__back path {
+  fill: url(#rosetteBackTint);
+}
+
 .rosette__petal {
   will-change: transform, opacity;
 }
 
 .rosette__petal-shape {
-  fill: url(#rosettePetalTint);
-  stroke: rgba(255, 226, 238, 0.38);
-  stroke-width: 1;
+  fill: url(#rosetteFlush);
+  stroke: rgba(255, 236, 244, 0.55);
+  stroke-width: 0.7;
   stroke-linejoin: round;
+}
+
+.rosette__glow {
+  fill: url(#rosetteTipGlow);
 }
 
 .rosette__vein {
   fill: none;
-  stroke: rgba(122, 31, 66, 0.45);
-  stroke-width: 1.1;
+  stroke: rgba(158, 58, 94, 0.3);
+  stroke-width: 0.8;
   stroke-linecap: round;
 }
 
-.rosette__core {
-  stroke: rgba(255, 232, 180, 0.5);
-  stroke-width: 0.8;
+.rosette__disc {
+  fill: #7c2246;
 }
 
-.rosette__dot {
-  fill: #eec272;
+.rosette__stamen {
+  fill: none;
+  stroke: rgba(214, 122, 154, 0.9);
+  stroke-width: 0.9;
+  stroke-linecap: round;
+}
+
+.rosette__anther {
+  fill: #f4cf7f;
+  stroke: rgba(122, 74, 22, 0.6);
+  stroke-width: 0.4;
+}
+
+.rosette__pistil {
+  fill: #f0c987;
 }
 
 .bonsai {
@@ -942,6 +964,11 @@
     width: 46%;
   }
 
+  /* The day card's midline at this breakpoint: 6% + half of 46%. */
+  .rosette {
+    left: 29%;
+  }
+
   .rope--near {
     left: 26px;
   }
@@ -1098,6 +1125,11 @@
   }
 
   .days {
+    top: 26%;
+  }
+
+  /* Stays married to the day card's centre. */
+  .rosette {
     top: 26%;
   }
 }
