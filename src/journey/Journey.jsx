@@ -398,14 +398,16 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
          petals that crosses the whole frame. */
       tl.to(q('.bonsai'), { xPercent: 0, autoAlpha: 1, duration: 6, ease: 'power3.out' }, 104);
 
-      /* The great blossom behind the day card: it fades up with the act,
-         turns slowly under the scroll, and shows its five petals ONE at a
-         time — the windows never overlap, each petal is fully open before
-         the next begins, and a petal arrives at 0.78 scale so most of it is
-         already clear of the opaque card while it fades in (an unfold from
-         the heart happened entirely behind the card, and read as nothing).
-         It leaves with the days, fully dark by 129, so the FAQ act still
-         opens on a bare stage. */
+      /* The great blossom behind the day card: it fades up with the act and
+         turns slowly under the scroll — those stay scrubbed — but the five
+         petals do NOT. A scrubbed stagger is compressed into however long
+         the user spends crossing its scroll span, which at any real pace is
+         a blink, and it never read as one-by-one. Instead each petal pops
+         in REAL time — 0.55s with a little overshoot — the moment the
+         playhead crosses its mark, exactly the way the ladder act is cued,
+         so the sequence reads petal by petal at any scroll speed and folds
+         back petal by petal on the way up. The container still goes fully
+         dark by 129, so the FAQ act opens on a bare stage. */
       const rosette = q('.rosette')[0];
       const rosettePetals = q('.rosette__petal');
       gsap.set(rosette, { xPercent: -50, yPercent: -50, autoAlpha: 0, rotation: -24 });
@@ -418,13 +420,36 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
       tl.to(rosette, { autoAlpha: 0.85, duration: 2.5 }, 105)
         .to(rosette, { rotation: 36, duration: 22, ease: 'none' }, 105)
         .to(rosette, { autoAlpha: 0, duration: 2.6 }, 126.4);
-      rosettePetals.forEach((petal, index) => {
-        tl.to(
-          petal,
-          { autoAlpha: 1, scale: 1, rotation: 0, duration: 1.7, ease: 'power2.out' },
-          107 + index * 3,
-        );
-      });
+
+      const petalShown = rosettePetals.map(() => false);
+      const rosetteCue = (progress) => {
+        const at = progress * tl.duration();
+        rosettePetals.forEach((petal, index) => {
+          const wanted = at >= 108 + index * 3.2;
+          if (wanted === petalShown[index]) return;
+          petalShown[index] = wanted;
+          gsap.to(
+            petal,
+            wanted
+              ? {
+                  autoAlpha: 1,
+                  scale: 1,
+                  rotation: 0,
+                  duration: 0.55,
+                  ease: 'back.out(1.6)',
+                  overwrite: 'auto',
+                }
+              : {
+                  autoAlpha: 0,
+                  scale: 0.78,
+                  rotation: -9,
+                  duration: 0.4,
+                  ease: 'power2.in',
+                  overwrite: 'auto',
+                },
+          );
+        });
+      };
 
       /* Scoped to the bonsai so it does not also grab the branch flowers.
          Ends at 125.5, the moment the bonsai starts to leave. */
@@ -577,11 +602,13 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
         onUpdate: (self) => {
           petalCue(self.progress);
           ladderCue(self.progress);
+          rosetteCue(self.progress);
           gate(self);
         },
         onRefresh: (self) => {
           petalCue(self.progress);
           ladderCue(self.progress);
+          rosetteCue(self.progress);
         },
       });
 
