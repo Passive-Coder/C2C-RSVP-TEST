@@ -789,11 +789,13 @@ const Petals = forwardRef(function Petals(
       } else if (live > want + 8) {
         /* Thin out strangers from a previous act first; only when the field is
            being wound down to nothing does the fade take everyone, so a mode
-           hand-off can never bleach the petals that were just seeded for it. */
+           hand-off can never bleach the petals that were just seeded for it.
+           Strangers die fast — the FAQ act must not open under the
+           timeline's river — while a same-kind wind-down keeps some grace. */
         const takeAll = want === 0;
         for (const p of petals) {
           if (!p.dead && !p.refill && (takeAll || p.kind !== mode)) {
-            p.alpha *= 0.97;
+            p.alpha *= p.kind !== mode ? 0.88 : 0.965;
             if (p.alpha < 0.05) p.dead = true;
           }
         }

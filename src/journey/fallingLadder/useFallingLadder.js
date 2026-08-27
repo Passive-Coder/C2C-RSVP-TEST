@@ -25,7 +25,13 @@ import { useCallback, useLayoutEffect, useMemo, useRef } from 'react';
 import gsap from 'gsap';
 
 import { limbAt } from '../limbCurve.js';
-import { createLadderSim, createReelSim, SIM_STEP, TIME_SCALE } from './ladderPhysics.js';
+import {
+  createLadderSim,
+  createReelSim,
+  FALL_TIME_SCALE,
+  SIM_STEP,
+  TIME_SCALE,
+} from './ladderPhysics.js';
 
 /** Where a bough turns, as a fraction of its own box. Matches the artwork. */
 const PIVOT_X = 0.04;
@@ -332,7 +338,8 @@ export function useFallingLadder(stageRef) {
     };
 
     function tick(_time, deltaMs) {
-      let remaining = Math.min(deltaMs / 1000, MAX_FRAME) / TIME_SCALE;
+      const scale = mode === 'fall' ? FALL_TIME_SCALE : TIME_SCALE;
+      let remaining = Math.min(deltaMs / 1000, MAX_FRAME) / scale;
       while (remaining > 0 && !sim.done) {
         sim.step(Math.min(remaining, SIM_STEP));
         remaining -= SIM_STEP;

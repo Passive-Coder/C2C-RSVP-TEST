@@ -33,8 +33,11 @@
 
 const DEG = Math.PI / 180;
 
-/** Real seconds per simulation second — the act's tape speed, fall and reel. */
+/** Real seconds per simulation second — the reel's tape speed. */
 export const TIME_SCALE = 0.95;
+
+/** The fall runs twice as quick again: arriving must never feel like a wait. */
+export const FALL_TIME_SCALE = 0.475;
 
 /** Fixed solver step. The cords are stiff, so this sits well inside them. */
 export const SIM_STEP = 1 / 600;

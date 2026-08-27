@@ -8,12 +8,12 @@
  * tablets and phones rather than just scaling it down.
  * ------------------------------------------------------------------ */
 
-/* 1050vh of travel over the timeline's 146s — roughly 30% more scroll per
-   timeline second than the original cut, so the whole journey plays slower
-   under the wheel without any act gaining or losing share. */
+/* 950vh of travel over the timeline's 146s — slower than the original cut,
+   but a notch freer than the 1150vh it briefly was: the journey should
+   glide, not resist. */
 .journey {
   position: relative;
-  height: 1150vh;
+  height: 1050vh;
 }
 
 .journey__stage {
@@ -46,10 +46,10 @@
 /* ------------------------------------------------------------------ *
  * Ridge lines
  *
- * ridge-tile.png is the hills silhouette mirrored onto itself, so it
- * repeats seamlessly and can pan sideways forever. Every band is
- * anchored to the bottom and its own bottom row is fully opaque, so
- * none of the source plate is ever visible underneath.
+ * hills-band.webp is the design's own footer-hills plate — a wide,
+ * asymmetric forested range, NOT a mirrored tile — with its seam blended
+ * out offline so repeat-x continues the range naturally. `auto 100%`
+ * keeps the artwork's aspect at every band height: nothing is squashed.
  * ------------------------------------------------------------------ */
 
 .ridge {
@@ -58,32 +58,30 @@
   bottom: 0;
   width: 120%;
   z-index: 1;
-  background-image: url('/assets/img/ridge-tile.png');
+  background-image: url('/assets/img/hills-band.webp');
   background-repeat: repeat-x;
   background-position: 0 bottom;
+  background-size: auto 100%;
   pointer-events: none;
   will-change: background-position, transform;
 }
 
 .ridge--far {
-  height: 31%;
-  background-size: 52% 100%;
-  opacity: 0.5;
-  filter: brightness(0.42) saturate(0.55);
+  height: 36%;
+  opacity: 0.55;
+  filter: brightness(0.52) saturate(0.7);
 }
 
 .ridge--mid {
-  height: 25%;
-  background-size: 76% 100%;
-  opacity: 0.85;
-  filter: brightness(0.62) saturate(0.8);
+  height: 29%;
+  opacity: 0.9;
+  filter: brightness(0.74) saturate(0.85);
   z-index: 3;
 }
 
 .ridge--near {
-  height: 19%;
-  background-size: 112% 100%;
-  filter: brightness(0.8);
+  height: 22%;
+  filter: brightness(0.95);
   z-index: 5;
 }
 
@@ -785,10 +783,12 @@
   filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.55));
 }
 
-/* One plate serves both sides; the supplied pair were the same bitmap, one
-   of them simply mirrored. */
-.bough--right img {
-  transform: scaleX(-1);
+/* The ghost bough: an invisible box the right-hand ladder hangs from,
+   raised above the frame so its knots never show — the ropes just run off
+   the top of the stage. Flattened on purpose: its height only places the
+   knots, and a plate-shaped box would push them back on screen. */
+.bough--ghost {
+  aspect-ratio: 1827 / 220;
 }
 
 .faq-shell {
@@ -1036,6 +1036,11 @@
 
   .lantern__label {
     font-size: clamp(11px, 4vw, 18px);
+  }
+
+  /* The design floats the big lamps and their captions over the hills. */
+  .lanterns {
+    z-index: 6;
   }
 
   /* No room for it here: the phone screen already carries the bonsai and

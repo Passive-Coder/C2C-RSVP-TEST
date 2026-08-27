@@ -3,7 +3,7 @@ import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-import Lanterns, { Wind, LANTERNS } from './Lanterns.jsx';
+import Lanterns, { Wind, lanternAt } from './Lanterns.jsx';
 import Branches from './Branches.jsx';
 import Rosette from './Rosette.jsx';
 import { useFallingLadder } from './fallingLadder/index.js';
@@ -366,7 +366,7 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
 ;
 
       lanterns.forEach((lantern, index) => {
-        const spec = LANTERNS[index];
+        const spec = lanternAt(index, phone());
         const entry = -(spec.x + spec.size + 8);
         gsap.set(lantern, { x: `${entry}vw`, y: `${spec.drop}vh`, autoAlpha: 0 });
 
@@ -552,6 +552,10 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
           api.setWind(0.5);
           api.setIntensity(0.085 * ramp(134, 141));
         } else {
+          /* Between acts. Handing the mode to 'drift' marks any routed
+             petals as strangers, which die fast — a quick scroll into the
+             FAQ act must not carry the timeline's river along with it. */
+          api.setMode('drift');
           api.setIntensity(0);
         }
       };
@@ -590,9 +594,9 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
         trigger: root,
         start: 'top top',
         end: 'bottom bottom',
-        /* A slightly longer catch-up spreads a hard fling over more frames —
-           the set glides rather than snapping after the wheel. */
-        scrub: reduced ? true : 0.8,
+        /* Enough catch-up to glide, little enough to feel free under the
+           wheel. */
+        scrub: reduced ? true : 0.7,
         invalidateOnRefresh: true,
         onRefreshInit: () => {
           /* Card geometry depends on the breakpoint and the stage's aspect, so
