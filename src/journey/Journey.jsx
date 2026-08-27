@@ -441,6 +441,23 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
          short run carries the fall into the footer. */
       tl.to({}, { duration: 13 }, 133);
 
+      /* M — the camera tilt. On layouts where the ladder is taller than the
+         frame — a phone's single column, a short tablet — the whole act pans
+         upward across the span, boughs and shell together so the knots never
+         part from the wood, bringing the tail rungs on screen before the
+         footer arrives. Wide stages measure zero overflow and never move.
+         offsetTop/offsetHeight are layout values, untouched by the act's
+         transforms, so the measure is exact even taken mid-fall. */
+      const faqShell = q('.faq-shell')[0];
+      const faqBranches = q('.branches')[0];
+      const faqOverflow = () =>
+        Math.max(0, faqShell.offsetTop + faqShell.offsetHeight + 28 - stage.clientHeight);
+      tl.to(
+        [faqBranches, faqShell],
+        { y: () => -faqOverflow(), duration: 11, ease: 'none' },
+        133.5,
+      );
+
       /* ---------------- petals, cued off overall progress ------------- */
 
       /* Past the cue the ladder is out; before it, reeled in. A GSAP callback
@@ -544,6 +561,15 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
          keeps them downstream of the cue that starts the act. */
       const guard = () => gate(trigger);
       window.addEventListener('scroll', guard, { passive: true });
+
+      /* An opened answer makes the shell taller mid-act; once the expand
+         settles, re-measure so the tilt still brings the tail into view. */
+      let shellTimer = 0;
+      const shellWatch = new ResizeObserver(() => {
+        clearTimeout(shellTimer);
+        shellTimer = setTimeout(() => ScrollTrigger.refresh(), 220);
+      });
+      shellWatch.observe(faqShell);
       window.addEventListener('journey:leap', leap);
       window.addEventListener('wheel', grab, { passive: true });
       window.addEventListener('touchstart', grab, { passive: true });
@@ -574,6 +600,8 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
       }
 
       return () => {
+        clearTimeout(shellTimer);
+        shellWatch.disconnect();
         window.removeEventListener('load', refresh);
         window.removeEventListener('scroll', guard);
         window.removeEventListener('journey:leap', leap);

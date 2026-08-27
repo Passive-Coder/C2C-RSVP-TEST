@@ -185,8 +185,10 @@ ul {
   border: 2px solid var(--rose);
   border-radius: 30px 5px 30px 5px;
   /* Prefixed forms come from the Lightning CSS targets in vite.config.js —
-     hand-writing -webkit- here makes the minifier drop the standard one. */
-  backdrop-filter: blur(14px);
+     hand-writing -webkit- here makes the minifier drop the standard one.
+     8px, not more: the stage repaints under this bar on every scrubbed
+     frame, and the re-blur cost grows with the radius. */
+  backdrop-filter: blur(8px);
 }
 
 .navbar__brand {
@@ -272,7 +274,7 @@ ul {
     background: rgba(12, 0, 4, 0.94);
     border: 2px solid var(--rose);
     border-radius: 20px 5px 20px 5px;
-    backdrop-filter: blur(14px);
+    backdrop-filter: blur(8px);
   }
 
   .navbar__links[data-open='false'] {
