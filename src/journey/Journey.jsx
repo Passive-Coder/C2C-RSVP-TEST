@@ -601,11 +601,13 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
          takes a deliberate bit of excess scroll, not a grazed threshold. */
       const FAQ_OFF = 231.5;
       /* The act's doors, in timeline seconds. While the ladder is FALLING
-         the scroll is walled at EXIT, short of the footer, so nobody blows
-         blindly past the questions mid-drop; while it is being REELED the
+         the scroll is walled at EXIT — deliberately BEFORE the camera
+         tilt's span (236.5+), so the drop always settles onto a still
+         stage and the pan only begins once the rig is home; the ladder can
+         never be dragged upward mid-appearance again. While REELING the
          scroll holds at ENTRY, where the stage behind the rig is bare (the
          bonsai act's furniture is gone by 230.5). */
-      const FAQ_EXIT = 244;
+      const FAQ_EXIT = 236;
       const FAQ_ENTRY = 230.5;
 
       /* L — the FAQ act's scroll span: the shed reaches full at 244, then a
@@ -660,7 +662,13 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
            timeline's routed river cannot be layered behind the FAQ ladder —
            instead it is retired outright the moment the FAQ act owns the
            stage, and rebuilt when the scroll returns to the timeline. */
-        api.setPurge('path', at >= 233);
+        /* The purge boundary matches the reel's hysteresis line (231.5),
+           not the fall cue: between the two the rig can still be out, and
+           a river alive there painted straight over the planks. And while
+           the act is mid-play in either direction, the river stays dead
+           regardless of where the scroll sits — it may never cross the
+           rig. */
+        api.setPurge('path', at >= 231.5 || ladder.getBusy() !== null);
 
         if (at < 15) {
           /* Strictly the hero: shed from the canopy itself, and sparsely. */
@@ -673,7 +681,7 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
           api.setMode('drift');
           api.setWind(3.4);
           api.setIntensity(0.08 * ramp(71, 77) * (1 - ramp(96, 103)));
-        } else if (at >= 103 && at < 233) {
+        } else if (at >= 103 && at < 231.5) {
           /* Carried slowly along the act's own route — down the left, across
              the floor, up the right — rather than milling about the middle. */
           api.setMode('path');

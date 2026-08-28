@@ -1084,8 +1084,12 @@
     height: 34%;
   }
 
+  /* Pinned just below the branch plate, whichever way the plate was sized:
+     its height is width × 861/1827, and width is min(108vw, 86svh), so the
+     ladder always starts clear of the blossoms instead of climbing up
+     behind them on wide-but-short screens. */
   .faq-shell {
-    top: 12%;
+    top: min(46vw, 38svh);
     width: calc(100% - 32px);
   }
 

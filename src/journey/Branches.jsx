@@ -19,8 +19,11 @@ const WIDE = [
 ];
 
 const NARROW = [
-  { side: 'left', left: -4, top: -2, width: 108 },
-  { side: 'right', left: 120, top: -26, width: 40, ghost: true },
+  /* Width is capped against the viewport height: a plate sized purely off a
+     wide-but-short window grows to half the frame and swallows the ladder.
+     86svh of width keeps the plate's height under ~40% of the screen. */
+  { side: 'left', left: -4, top: -2, width: 'min(108%, 86svh)' },
+  { side: 'right', left: 120, top: -26, width: '40%', ghost: true },
 ];
 
 export default function Branches() {
@@ -45,7 +48,11 @@ export default function Branches() {
           className={`bough bough--${bough.side}${bough.ghost ? ' bough--ghost' : ''}`}
           key={bough.side}
           data-bough-side={bough.side}
-          style={{ left: `${bough.left}%`, top: `${bough.top}%`, width: `${bough.width}%` }}
+          style={{
+            left: `${bough.left}%`,
+            top: `${bough.top}%`,
+            width: typeof bough.width === 'number' ? `${bough.width}%` : bough.width,
+          }}
         >
           {!bough.ghost && <img src="/assets/img/branch-plate.png" alt="" />}
         </div>
