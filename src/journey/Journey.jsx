@@ -87,7 +87,7 @@ const TIMELINE_PHASES = [
   {
     title: 'Idea Submission',
     when: '31 Aug – 5 Sep 2026 · online',
-    line: 'Pick a problem statement and outline your solution on the portal. External entries close 3 Sep, 11:59 PM IST — earlier, to plan travel — and internal entries close 5 Sep. Shortlisted teams are invited to campus.',
+    line: 'Pick a problem statement and outline your solution on the portal. External entries close 3 Sep, 11:59 PM IST (earlier, to plan travel) and internal entries close 5 Sep. Shortlisted teams are invited to campus.',
   },
   {
     title: 'Check-In',
@@ -102,12 +102,12 @@ const TIMELINE_PHASES = [
   {
     title: 'Hacking Starts',
     when: '7 Sep, 4:00 PM – 8 Sep, 6:00 AM IST',
-    line: 'Teams translate their submitted ideas into a concrete technical plan and start building — the architecture set up here carries the project through the hackathon.',
+    line: 'Teams translate their submitted ideas into a concrete technical plan and start building. The architecture set up here carries the project through the hackathon.',
   },
   {
-    title: 'Review 1 — Progress Check',
+    title: 'Review 1: Progress Check',
     when: '8 Sep · 10:00 AM – 1:00 PM IST',
-    line: 'Walk mentors through your approach, early progress, and roadmap. Feedback here course-corrects before the heavier build phases — no team is eliminated.',
+    line: 'Walk mentors through your approach, early progress, and roadmap. Feedback here course-corrects before the heavier build phases. No team is eliminated.',
   },
   {
     title: 'Hacking Continues',
@@ -115,7 +115,7 @@ const TIMELINE_PHASES = [
     line: 'Teams demonstrate working progress and explain their implementation, remaining roadmap, and the overall scope of the solution.',
   },
   {
-    title: 'Review 2 — Prototype Evaluation',
+    title: 'Review 2: Prototype Evaluation',
     when: '9 Sep · 1:00 – 6:00 AM IST · eliminatory',
     line: 'Present a functional prototype, demonstrate core features, and address scalability. The highest-performing teams qualify for the final pitch.',
   },
@@ -208,18 +208,20 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
   const rootRef = useRef(null);
   const stageRef = useRef(null);
 
-  /*
-   * The FAQ act runs as a simulation, not as part of the scrubbed timeline: a
-   * fall stepped through by a scroll wheel is not a fall. The timeline only
-   * cues it, and the act owns its own boughs and panel from there.
-   */
-  const ladder = useFallingLadder(stageRef);
-
   /* Two ladders side by side, or one long one on a phone. Every question is on
      the page either way — a phone used to be shown half of them. */
   const [narrow, setNarrow] = useState(
     () => typeof window !== 'undefined' && window.matchMedia('(max-width: 760px)').matches,
   );
+
+  /*
+   * The FAQ act runs as a simulation, not as part of the scrubbed timeline: a
+   * fall stepped through by a scroll wheel is not a fall. The timeline only
+   * cues it, and the act owns its own boughs and panel from there. `narrow`
+   * is the remount key: the breakpoint rebuilds the columns, and the act must
+   * re-capture them or it keeps measuring detached DOM.
+   */
+  const ladder = useFallingLadder(stageRef, narrow);
 
   useEffect(() => {
     const query = window.matchMedia('(max-width: 760px)');
@@ -522,8 +524,8 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
         transformOrigin: '50% 100%',
       });
       tl.to(rosette, { autoAlpha: 0.85, duration: 2.5 }, 105)
-        .to(rosette, { rotation: 36, duration: 124, ease: 'none' }, 105)
-        .to(rosette, { autoAlpha: 0, duration: 2.6 }, 229.4);
+        .to(rosette, { rotation: 36, duration: 122, ease: 'none' }, 105)
+        .to(rosette, { autoAlpha: 0, duration: 2.6 }, 227.4);
 
       const petalShown = rosettePetals.map(() => false);
       const rosetteCue = (progress) => {
@@ -557,10 +559,11 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
 
       /* Scoped to the bonsai so it does not also grab the branch flowers.
          The timeline act runs at five times its old scroll span (104–234),
-         so the bloom stretches across most of it, done by 205 — well before
-         the bonsai starts to leave at 228.5. */
+         and the bloom is timed to complete at 209 — the moment the LAST
+         phase card arrives — so the pot is fully grown exactly when the
+         schedule finishes telling itself. */
       const bonsaiBloom = createBloomTimeline(q('.bonsai')[0], { moments: false });
-      tl.add(bonsaiBloom.duration(100), 105);
+      tl.add(bonsaiBloom.duration(104), 105);
 
       /* Fade and rise only — no blur() in these: a filter tween on live text
          repaints the card on every scrubbed frame, and this act already pays
@@ -569,7 +572,7 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
       const days = q('.day');
       gsap.set(days, { autoAlpha: 0, y: 26 });
       tl.to(q('.days'), { autoAlpha: 1, duration: 2 }, 106);
-      const DAY_SLOT = 100 / days.length;
+      const DAY_SLOT = 115 / days.length;
       days.forEach((day, index) => {
         const at = 106 + index * DAY_SLOT;
         tl.to(day, { autoAlpha: 1, y: 0, duration: DAY_SLOT * 0.45 }, at + 0.35);
@@ -577,7 +580,7 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
           tl.to(day, { autoAlpha: 0, y: -26, duration: DAY_SLOT * 0.5 }, at + DAY_SLOT);
         }
       });
-      tl.to(q('.days'), { autoAlpha: 0, duration: 3 }, 224);
+      tl.to(q('.days'), { autoAlpha: 0, duration: 3 }, 221);
 
       /*
        * J/K — the bonsai leaves, and the FAQ act takes over. The boughs being
@@ -586,20 +589,24 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
        * timeline's only job is to say when. Scrolling back up past the cue
        * reels the ladder in again.
        *
-       * The bonsai is fully out at 232.5 — before the reel's door at 233 —
-       * so while the rig is being hauled off, the stage behind it is bare:
+       * The bonsai is fully out at 230.5 — exactly the reel's door — so
+       * while the rig is being hauled off, the stage behind it is bare:
        * no act re-enters until the reel has finished and the door opens.
        */
-      tl.to(q('.bonsai'), { xPercent: 135, autoAlpha: 0, duration: 4, ease: 'power2.in' }, 228.5);
+      tl.to(q('.bonsai'), { xPercent: 135, autoAlpha: 0, duration: 4, ease: 'power2.in' }, 226.5);
 
       const FAQ_CUE = 234;
-      /* The reel's door, in timeline seconds: while the ladder is being
-         hauled back in, the scroll holds here, just below the cue. The
-         bonsai act's furniture is gone by 232.5, so the stage behind the
-         reel is bare and nothing else can appear until the rig has left.
-         Forward is never walled — scrolling on toward the footer mid-fall
-         is free, and the fall simply plays out as it goes. */
-      const FAQ_ENTRY = 233;
+      /* Hysteresis: the fall cues at 234, but the reel does not begin until
+         the scroll has climbed clearly back past 231.5 — hiding the answers
+         takes a deliberate bit of excess scroll, not a grazed threshold. */
+      const FAQ_OFF = 231.5;
+      /* The act's doors, in timeline seconds. While the ladder is FALLING
+         the scroll is walled at EXIT, short of the footer, so nobody blows
+         blindly past the questions mid-drop; while it is being REELED the
+         scroll holds at ENTRY, where the stage behind the rig is bare (the
+         bonsai act's furniture is gone by 230.5). */
+      const FAQ_EXIT = 244;
+      const FAQ_ENTRY = 230.5;
 
       /* L — the FAQ act's scroll span: the shed reaches full at 244, then a
          short run carries the fall into the footer. */
@@ -631,12 +638,16 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
 
       /* ---------------- petals, cued off overall progress ------------- */
 
-      /* Past the cue the ladder is out; before it, reeled in. A GSAP callback
-         fires whichever way the playhead crosses it, so it cannot express a
-         state — this can. The hook itself ignores a repeat of what it is
-         already doing. */
+      /* Past the cue the ladder is out; back above the OFF line, reeled in.
+         Two thresholds, not one: a single line re-triggered the act on the
+         smallest wobble around it. The hook itself ignores a repeat of what
+         it is already doing. */
+      let faqOn = false;
       const ladderCue = (progress) => {
-        ladder.setActive(progress * tl.duration() >= FAQ_CUE);
+        const at = progress * tl.duration();
+        if (!faqOn && at >= FAQ_CUE) faqOn = true;
+        else if (faqOn && at < FAQ_OFF) faqOn = false;
+        ladder.setActive(faqOn);
       };
 
       const petalCue = (progress) => {
@@ -703,11 +714,13 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
       };
 
       const gate = (self) => {
-        if (ladder.getBusy() !== 'reel') return;
+        const busy = ladder.getBusy();
+        if (!busy) return;
         if (performance.now() < leapUntil) return;
-        const wall =
-          self.start + (FAQ_ENTRY / tl.duration()) * (self.end - self.start);
-        if (self.scroll() < wall) {
+        const perSecond = (self.end - self.start) / tl.duration();
+        const wall = self.start + (busy === 'fall' ? FAQ_EXIT : FAQ_ENTRY) * perSecond;
+        const at = self.scroll();
+        if (busy === 'fall' ? at > wall : at < wall) {
           window.scrollTo({ top: wall, behavior: 'instant' });
         }
       };

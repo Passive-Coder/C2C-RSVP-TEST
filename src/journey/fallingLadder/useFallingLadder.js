@@ -57,7 +57,14 @@ function boxWithin(el, stageRect) {
   };
 }
 
-export function useFallingLadder(stageRef) {
+/*
+ * `remountKey` must change whenever the ladder's DOM is rebuilt — the phone
+ * breakpoint remounts the columns, and an effect keyed only on the stage
+ * kept measuring the detached old ones: fresh columns were never observed,
+ * never pinned, and their ropes hung from nowhere after a live resize
+ * across the breakpoint.
+ */
+export function useFallingLadder(stageRef, remountKey) {
   /* A stable handle: the effect hangs the real implementation off this ref, so
      the caller can hold the handle across re-runs without re-wiring anything,
      and calling it before the effect has run is simply ignored. */
@@ -460,7 +467,7 @@ export function useFallingLadder(stageRef) {
       probe.current = null;
       clearStyles();
     };
-  }, [stageRef]);
+  }, [stageRef, remountKey]);
 
   return useMemo(() => ({ setActive, getBusy }), [setActive, getBusy]);
 }

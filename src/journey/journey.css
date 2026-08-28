@@ -1085,7 +1085,7 @@
   }
 
   .faq-shell {
-    top: 14%;
+    top: 12%;
     width: calc(100% - 32px);
   }
 
@@ -1093,17 +1093,20 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  /* One ladder carrying every question, at a size you can actually read.
-     On a short phone the tail of the ladder runs past the fold — that is the
-     accepted trade for legible rungs. */
+  /* One ladder carrying every question, sized against the viewport so the
+     whole run of twelve rungs FITS the section: 12% of the height for the
+     boughs, ~5.2svh a rung, ~1svh a gap ≈ 85svh all told. The ladder's
+     height follows the section's, so the camera tilt has nothing left to
+     do on a phone — which is what used to read as the rig suddenly
+     hitching upward right after the drop. */
   .faq-column {
-    gap: clamp(8px, 1.4vh, 14px);
+    gap: clamp(6px, 1svh, 12px);
   }
 
   .plank__face {
-    min-height: 46px;
+    min-height: clamp(34px, 5.2svh, 46px);
     padding-inline: 16px;
-    font-size: 13.5px;
+    font-size: 13px;
     line-height: 1.28;
   }
 
