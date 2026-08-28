@@ -1080,8 +1080,11 @@
     font-size: clamp(11px, 3.2vw, 14px);
   }
 
+  /* The clip window must hold the whole full-width plate (~51vw tall plus
+     its slight upward offset) — a fixed 34% sliced a hard edge through the
+     blossoms on wide-but-short screens. */
   .branches {
-    height: 34%;
+    height: min(56vw, 100%);
   }
 
   /* Pinned just below the full-width branch plate (its height is
