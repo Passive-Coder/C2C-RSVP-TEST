@@ -618,9 +618,14 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
          free of the section edge instead of sitting on it. */
       const faqOverflow = () =>
         Math.max(0, faqShell.offsetTop + faqShell.offsetHeight + 72 - stage.clientHeight);
-      tl.to(
+      /* fromTo, not to: on a refresh mid-act an invalidated .to() re-captures
+         its start from the CURRENT translate, so the rig jumped by however
+         far the tilt had already run. An explicit 0 start keeps the mapping
+         anchored no matter when ScrollTrigger re-measures. */
+      tl.fromTo(
         [faqBranches, faqShell],
-        { y: () => -faqOverflow(), duration: 11, ease: 'none' },
+        { y: 0 },
+        { y: () => -faqOverflow(), duration: 11, ease: 'none', immediateRender: false },
         236.5,
       );
 
@@ -740,14 +745,10 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
       const guard = () => gate(trigger);
       window.addEventListener('scroll', guard, { passive: true });
 
-      /* An opened answer makes the shell taller mid-act; once the expand
-         settles, re-measure so the tilt still brings the tail into view. */
-      let shellTimer = 0;
-      const shellWatch = new ResizeObserver(() => {
-        clearTimeout(shellTimer);
-        shellTimer = setTimeout(() => ScrollTrigger.refresh(), 220);
-      });
-      shellWatch.observe(faqShell);
+      /* Deliberately NO ResizeObserver on the shell: refreshing the trigger
+         every time an answer opened re-targeted the tilt and yanked the
+         whole rig vertically mid-read. The tilt's clearance absorbs an open
+         answer instead, and real viewport resizes still refresh normally. */
       window.addEventListener('journey:leap', leap);
       window.addEventListener('wheel', grab, { passive: true });
       window.addEventListener('touchstart', grab, { passive: true });
@@ -778,8 +779,6 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
       }
 
       return () => {
-        clearTimeout(shellTimer);
-        shellWatch.disconnect();
         window.removeEventListener('load', refresh);
         window.removeEventListener('scroll', guard);
         window.removeEventListener('journey:leap', leap);

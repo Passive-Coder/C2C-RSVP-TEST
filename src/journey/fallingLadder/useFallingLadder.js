@@ -436,15 +436,26 @@ export function useFallingLadder(stageRef) {
       idle();
     };
 
-    const observer = new ResizeObserver(relayout);
+    /* Trailing debounce: an opening answer resizes its column on every frame
+       of its 340ms grid transition, and re-measuring against those half-open
+       heights pinned the ropes to positions the layout had already left.
+       One relayout, once the layout has settled. */
+    let settleTimer = 0;
+    const relayoutSettled = () => {
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(relayout, 160);
+    };
+
+    const observer = new ResizeObserver(relayoutSettled);
     boughEls.forEach((el) => observer.observe(el));
     columnEls.forEach((el) => observer.observe(el));
-    window.addEventListener('resize', relayout);
+    window.addEventListener('resize', relayoutSettled);
 
     return () => {
       stop();
+      clearTimeout(settleTimer);
       observer.disconnect();
-      window.removeEventListener('resize', relayout);
+      window.removeEventListener('resize', relayoutSettled);
       cue.current = null;
       probe.current = null;
       clearStyles();
