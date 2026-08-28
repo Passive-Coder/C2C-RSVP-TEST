@@ -840,7 +840,7 @@ export default function Journey({ onFaqToggle, openFaq, petalsRef }) {
             <img src="/assets/svg/wordmark.svg" alt="Code2Create" width="669" height="85" />
           </h1>
           <p className="hero-tagline">Don’t just code for the vibes, Code2Create.</p>
-          <a className="hero-cta" href="https://gravitas.vit.ac.in/events">
+          <a className="hero-cta" href="https://gravitas.vit.ac.in/events/0eba5a6f-2687-416c-acd7-c51419433366">
             <img src="/assets/svg/btn-box.svg" alt="" aria-hidden="true" />
             <span>Register Now</span>
           </a>
