@@ -1084,12 +1084,12 @@
     height: 34%;
   }
 
-  /* Pinned just below the branch plate, whichever way the plate was sized:
-     its height is width × 861/1827, and width is min(108vw, 86svh), so the
-     ladder always starts clear of the blossoms instead of climbing up
-     behind them on wide-but-short screens. */
+  /* Pinned just below the full-width branch plate (its height is
+     108vw × 861/1827 ≈ 51vw), so the ladder starts clear of the blossoms
+     at any aspect; the svh ceiling only stops extreme wide-short windows
+     from pushing the rungs past mid-screen. */
   .faq-shell {
-    top: min(46vw, 38svh);
+    top: min(46vw, 52svh);
     width: calc(100% - 32px);
   }
 
